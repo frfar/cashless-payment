@@ -9,7 +9,10 @@ public class Main {
         System.out.println("Welcome to the Cashless Payment System!");
 
         byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
-        System.out.println(new String(encrypted));
+
+        for(int i = 0; i < encrypted.length; i++) {
+            System.out.println(encrypted[i]);
+        }
 //        try {
 //            Keypad keypad = Keypad.getKeypadInstance();
 //            while(true) {

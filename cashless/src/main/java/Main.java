@@ -24,7 +24,7 @@ public class Main {
 
             byte[] hmac = SHA256.getHMAC(encrypted, passwordBytes);
 
-            System.out.println(Base64.getEncoder().encode(hmac));
+            System.out.println(new String(Base64.getEncoder().encode(hmac)));
         } catch (IOException e) {
             e.printStackTrace();
         }

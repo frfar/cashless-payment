@@ -36,14 +36,15 @@ public class Keypad {
     }
 
     public String readKeyPressed() throws IOException {
+        String lineWithKeyStroke = "";
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
             String line = br.readLine();
-            System.out.println("test : " + line);
+
             if(i == lineNumberWithKeyStroke) {
-                return line.split(" ")[3];
+                lineWithKeyStroke = line;
             }
         }
-        return "";
+        return lineWithKeyStroke.split(" ")[3];
     }
 
 }

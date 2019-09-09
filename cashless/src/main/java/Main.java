@@ -1,8 +1,10 @@
 import keypad.Keypad;
 import security.AES;
+import security.SHA256;
 import security.utils.Utils;
 
 import java.io.IOException;
+import java.util.Base64;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,13 +15,20 @@ public class Main {
         for(int i = 0; i < encrypted.length; i++) {
             System.out.println(encrypted[i]);
         }
-//        try {
-//            Keypad keypad = Keypad.getKeypadInstance();
-//            while(true) {
-//                System.out.println(keypad.readPassword());
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+
+        try {
+            Keypad keypad = Keypad.getKeypadInstance();
+            String password = keypad.readPassword();
+            byte[] passwordBytes = password.getBytes();
+            System.out.println(password);
+
+            byte[] hmac = SHA256.getHMAC(encrypted, passwordBytes);
+
+            System.out.println(Base64.getEncoder().encode(hmac));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

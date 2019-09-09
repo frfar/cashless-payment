@@ -5,6 +5,18 @@ plugins {
 group 'com.utd.dslab'
 version '1.0-SNAPSHOT'
 
+task createJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'com.utd.iotdevice.main.Main'
+
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 sourceCompatibility = 1.8
 
 repositories {

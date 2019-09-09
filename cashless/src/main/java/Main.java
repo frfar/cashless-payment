@@ -29,30 +29,30 @@ public class Main {
 
         serial.addListener((SerialDataEventListener) event -> {
             try {
-                System.out.println(event.getAsciiString());
+                String cardString = event.getAsciiString().trim();
+                System.out.println("Messaged Received from Card:");
+                System.out.print(event.getAsciiString());
+
+                byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
+
+                System.out.println("Please Enter your 4 digit pin:");
+
+                Keypad keypad = Keypad.getKeypadInstance();
+                String password = keypad.readPassword();
+                byte[] passwordBytes = password.getBytes();
+                System.out.println("You have entered: " + password);
+
+                byte[] hmac = SHA256.getHMAC(encrypted, passwordBytes);
+
+                String encryptedString = new String(Base64.getEncoder().encode(hmac));
+                System.out.println("The encrypted String is:" + encryptedString);
+
+                if(!encryptedString.equals(cardString)) {
+                    System.out.println("You have entered wrong pin!!");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
-
-        for(int i = 0; i < encrypted.length; i++) {
-            System.out.println(encrypted[i]);
-        }
-
-        try {
-            Keypad keypad = Keypad.getKeypadInstance();
-            String password = keypad.readPassword();
-            byte[] passwordBytes = password.getBytes();
-            System.out.println(password);
-
-            byte[] hmac = SHA256.getHMAC(encrypted, passwordBytes);
-
-            System.out.println(new String(Base64.getEncoder().encode(hmac)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
     }
 }

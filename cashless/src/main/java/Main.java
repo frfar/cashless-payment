@@ -48,7 +48,9 @@ public class Main {
                 System.out.println("The encrypted String is:" + encryptedString);
 
                 if(!encryptedString.equals(cardString)) {
-                    System.out.println("You have entered wrong pin!!");
+                    System.out.println("You have entered incorrect pin!!");
+                } else {
+                    System.out.println("You have entered correct pin!!");
                 }
             } catch (IOException e) {
                 e.printStackTrace();

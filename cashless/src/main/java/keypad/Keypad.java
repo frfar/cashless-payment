@@ -16,6 +16,7 @@ public class Keypad {
     private static final String[] command = new String[] {"sudo","usbhid-dump","-m","04d9:1203","-es"};
     private static final int numberOfLinePerKeyStroke = 6;
     private static final int lineNumberWithKeyStroke = 1;
+    private static final int numberOfKeyStrokesInPassword = 4;
 
     private Keypad() {
         pb = new ProcessBuilder(Arrays.asList(command));
@@ -47,4 +48,12 @@ public class Keypad {
         return Converter.parse(lineWithKeyStroke);
     }
 
+    public String readPassword() throws IOException {
+        StringBuilder password = new StringBuilder();
+        for(int i = 0; i < numberOfKeyStrokesInPassword; i++) {
+            password.append(readKeyPressed());
+        }
+
+        return password.toString();
+    }
 }

@@ -9,7 +9,7 @@ public class Main {
         try {
             Keypad keypad = Keypad.getKeypadInstance();
             while(true) {
-                System.out.println(keypad.readKeyPressed());
+                System.out.println(keypad.readPassword());
             }
         } catch (IOException e) {
             e.printStackTrace();

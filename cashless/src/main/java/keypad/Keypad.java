@@ -40,7 +40,11 @@ public class Keypad {
             String line = br.readLine();
 
             if(i == lineNumberWithKeyStroke) {
-                return line.split(" ")[2];
+                String[] lines = line.split(" ");
+                for(int j = 0; j < lines.length; j++) {
+                    System.out.println(lines[j]);
+                }
+                return line;
             }
         }
         return "";

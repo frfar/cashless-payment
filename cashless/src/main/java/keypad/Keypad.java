@@ -38,13 +38,9 @@ public class Keypad {
     public String readKeyPressed() throws IOException {
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
             String line = br.readLine();
-
+            System.out.println("test : " + line);
             if(i == lineNumberWithKeyStroke) {
-                String[] lines = line.split(" ");
-                //for(int j = 0; j < lines.length; j++) {
-                    System.out.println(lines[2]);
-                //}
-                return line;
+                return line.split(" ")[3];
             }
         }
         return "";

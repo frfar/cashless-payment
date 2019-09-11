@@ -32,10 +32,6 @@ public class Keypad {
         return keypad;
     }
 
-    private static String readLine() throws IOException {
-        return br.readLine();
-    }
-
     public String readKeyPressed() throws IOException {
         String lineWithKeyStroke = "";
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
@@ -57,7 +53,7 @@ public class Keypad {
         return password.toString();
     }
 
-    public String readKeyLine() throws IOException {
+    public String readLine() throws IOException {
         StringBuilder line = new StringBuilder();
         String key;
         while(!(key = readKeyPressed()).equals("Enter")) {

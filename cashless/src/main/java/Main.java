@@ -60,7 +60,7 @@ public class Main {
         Keypad keypad = null;
         try {
             keypad = Keypad.getKeypadInstance();
-            String line = keypad.readKeyLine();
+            String line = keypad.readLine();
 
             System.out.println(line);
         } catch (IOException e) {

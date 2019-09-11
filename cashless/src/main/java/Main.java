@@ -57,9 +57,16 @@ public class Main {
 //            }
 //        });
 
-        Keypad keypad = Keypad.getKeypadInstance();
+        Keypad keypad = null;
+        try {
+            keypad = Keypad.getKeypadInstance();
+            String line = keypad.readKeyLine();
 
-        String line = keypad.readKeyLine();
+            System.out.println(line);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         while (true);
     }
 }

@@ -56,4 +56,14 @@ public class Keypad {
 
         return password.toString();
     }
+
+    public String readKeyLine() throws IOException {
+        StringBuilder line = new StringBuilder();
+        String key;
+        while(!(key = readKeyPressed()).equals("Enter")) {
+            line.append(key);
+        }
+
+        return line.toString();
+    }
 }

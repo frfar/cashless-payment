@@ -27,6 +27,21 @@ public class Main {
             e.printStackTrace();
         }
 
+        String id = "8223372036851235807";
+        String password = "1991";
+        byte[] passwordBytes = password.getBytes();
+
+        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
+        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
+
+        System.out.println(id + " " + encodedHmac);
+        try {
+            serial.writeln(id + " " + encodedHmac);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
 //        serial.addListener((SerialDataEventListener) event -> {
 //            try {
 //                String cardString = event.getAsciiString().trim();
@@ -57,16 +72,16 @@ public class Main {
 //            }
 //        });
 
-        Keypad keypad = null;
-        try {
-            keypad = Keypad.getKeypadInstance();
-            String line = keypad.readLine();
-
-            System.out.println(line);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        while (true);
+//        Keypad keypad = null;
+//        try {
+//            keypad = Keypad.getKeypadInstance();
+//            String line = keypad.readLine();
+//
+//            System.out.println(line);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        while (true);
     }
 }

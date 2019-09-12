@@ -23,7 +23,8 @@ public class Main {
 
         try {
             serial.open(config);
-        } catch (IOException e) {
+            Thread.sleep(5000);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 

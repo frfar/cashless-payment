@@ -37,7 +37,8 @@ public class Main {
         System.out.println(id + " " + encodedHmac);
         try {
             serial.write(id + " " + encodedHmac + ":");
-        } catch (IOException e) {
+            Thread.sleep(1000);
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 

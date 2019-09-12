@@ -35,9 +35,11 @@ public class Main {
         byte[] hmac = SHA256.getHMAC(id, passwordBytes);
         String encodedHmac = new String(Base64.getEncoder().encode(hmac));
 
+        byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
+
         System.out.println(id + " " + encodedHmac);
         try {
-            serial.write(id + " " + encodedHmac + ":");
+            serial.write(id + " " + encodedHmac + " " + encrypted +":");
             Thread.sleep(1000);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

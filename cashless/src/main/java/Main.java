@@ -15,7 +15,7 @@ public class Main {
 
         SerialConfig config = new SerialConfig();
         config.device("/dev/" + "ttyACM0")
-                .baud(Baud._57600)
+                .baud(Baud._9600)
                 .dataBits(DataBits._8)
                 .parity(Parity.NONE)
                 .stopBits(StopBits._1)

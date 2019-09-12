@@ -36,7 +36,7 @@ public class Main {
 
         System.out.println(id + " " + encodedHmac);
         try {
-            serial.writeln(id + " " + encodedHmac);
+            serial.write(id + " " + encodedHmac + "\r\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,6 +89,6 @@ public class Main {
 //            e.printStackTrace();
 //        }
 //
-//        while (true);
+        while (true);
     }
 }

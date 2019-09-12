@@ -41,6 +41,13 @@ public class Main {
             e.printStackTrace();
         }
 
+        serial.addListener(event -> {
+            try {
+                System.out.println("Received: " + event.getAsciiString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
 //        serial.addListener((SerialDataEventListener) event -> {
 //            try {

@@ -35,11 +35,11 @@ public class Main {
         byte[] hmac = SHA256.getHMAC(id, passwordBytes);
         String encodedHmac = new String(Base64.getEncoder().encode(hmac));
 
-        byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
-
-        System.out.println(id + " " + encodedHmac);
+        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
+        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
+        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
         try {
-            serial.write(id + " " + encodedHmac + " " + encrypted +"\r\n");
+            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
             Thread.sleep(1000);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -59,7 +59,7 @@ public class Main {
 //                System.out.println("Messaged Received from Card:");
 //                System.out.print(event.getAsciiString());
 //
-//                byte[] encrypted = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
+//                byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
 //
 //                System.out.println("Please Enter your 4 digit pin:");
 //
@@ -68,10 +68,10 @@ public class Main {
 //                byte[] passwordBytes = password.getBytes();
 //                System.out.println("You have entered: " + password);
 //
-//                byte[] hmac = SHA256.getHMAC(encrypted, passwordBytes);
+//                byte[] hmac = SHA256.getHMAC(encryptedMoney, passwordBytes);
 //
 //                String encryptedString = new String(Base64.getEncoder().encode(hmac));
-//                System.out.println("The encrypted String is:" + encryptedString);
+//                System.out.println("The encryptedMoney String is:" + encryptedString);
 //
 //                if(!encryptedString.equals(cardString)) {
 //                    System.out.println("You have entered incorrect pin!!");

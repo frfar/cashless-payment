@@ -90,28 +90,32 @@ public class Main {
                     String selectedItemCode = keypadItem.readChars(3);
                     if (selectedItemCode == "000") {
                         System.out.println("Transaction canceled");
+                    } else {
+                        HashMap<String, Integer> map = new HashMap<>();
+                        map.put("101", 1);
+                        map.put("102", 2);
+                        map.put("103", 3);
+                        int selectedItemPrice = map.get(selectedItemCode);
+
+                        int newMoney = money - selectedItemPrice;
+
+                        if(newMoney < 0) {
+                            System.out.println("Insufficient amount in the card!!");
+                        } else {
+                            System.out.println("You spent: $" + selectedItemPrice);
+                            System.out.println("You have $" + newMoney + " left in your card");
+                            byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
+                            String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
+
+                            String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
+
+                            serial.write(newCardString + "\r\n");
+
+                            Thread.sleep(1000);
+
+                            System.out.println("Transaction Successfully finished");
+                        }
                     }
-                    HashMap<String, Integer> map = new HashMap<>();
-                    map.put("101", 1);
-                    map.put("102", 2);
-                    map.put("103", 3);
-
-                    int newMoney = money - map.get(selectedItemCode);
-
-                    if(newMoney < 0) {
-                        System.out.println("Insufficient amount in the card!!");
-                    }
-
-                    byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
-                    String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
-
-                    String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
-
-                    serial.write(newCardString + "\r\n");
-
-                    Thread.sleep(1000);
-
-                    System.out.println("Transaction Successfully finished");
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();

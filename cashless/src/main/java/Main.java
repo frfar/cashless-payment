@@ -82,7 +82,7 @@ public class Main {
                     byte[] cardMoney = AES.decrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 
                     int money = cardMoney[0];
-                    System.out.println(money);
+                    System.out.println("You have " + money + " money in your card!!");
 
                     int newMoney = money - 2;
 

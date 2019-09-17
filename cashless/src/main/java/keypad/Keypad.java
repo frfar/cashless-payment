@@ -48,15 +48,22 @@ public class Keypad {
         StringBuilder password = new StringBuilder();
         for(int i = 0; i < numberOfKeyStrokesInPassword; i++) {
             password.append(readKeyPressed());
+            System.out.print("*");
         }
 
         return password.toString();
     }
 
-    public String readChars(int n) throws IOException {
+    public String readChars(int n, boolean... printChar) throws IOException {
         StringBuilder password = new StringBuilder();
+        boolean flag = (printChar.length >= 1) ? printChar[0] : false;
+
         for(int i = 0; i < n; i++) {
-            password.append(readKeyPressed());
+            String key = readKeyPressed();
+            password.append(key);
+            if (flag) {
+                System.out.print(key);
+            }
         }
 
         return password.toString();

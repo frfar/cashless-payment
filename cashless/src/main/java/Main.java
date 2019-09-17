@@ -83,38 +83,56 @@ public class Main {
                     byte[] cardMoney = AES.decrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 
                     int money = cardMoney[0];
-                    System.out.println("You have " + money + " money in your card!!");
+                    System.out.println("You have $" + money + " in your card!!");
 
-                    System.out.println("Coke $1: 101, Lays $2: 102, Pizza $3: 103. Or enter 000 to cancel");
-                    Keypad keypadItem = Keypad.getKeypadInstance();
-                    String selectedItemCode = keypadItem.readChars(3);
-                    if (selectedItemCode == "000") {
-                        System.out.println("Transaction canceled");
-                    } else {
-                        HashMap<String, Integer> map = new HashMap<>();
-                        map.put("101", 1);
-                        map.put("102", 2);
-                        map.put("103", 3);
-                        int selectedItemPrice = map.get(selectedItemCode);
-
-                        int newMoney = money - selectedItemPrice;
-
-                        if(newMoney < 0) {
-                            System.out.println("Insufficient amount in the card!!");
+                    if (args[0].equals("vm")) {
+                        System.out.println("Coke $1: 101, Lays $2: 102, Pizza $3: 103. Or enter 000 to cancel");
+                        Keypad keypadItem = Keypad.getKeypadInstance();
+                        String selectedItemCode = keypadItem.readChars(3);
+                        System.out.println("You entered: " + selectedItemCode);
+                        if (selectedItemCode.equals("000")) {
+                            System.out.println("Transaction canceled");
                         } else {
-                            System.out.println("You spent: $" + selectedItemPrice);
-                            System.out.println("You have $" + newMoney + " left in your card");
-                            byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
-                            String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
+                            System.out.println("Enter the amount of selected item, 1 to 9. Or enter 000 to cancel");
+                            int selectedAmount = -1;
+                            do {
+                                if (selectedAmount == 0) {
+                                    System.out.println("Please enter amount > 0 and < 10.");
+                                }
+                                Keypad keypadAmount = Keypad.getKeypadInstance();
+                                selectedAmount = Integer.parseInt(keypadAmount.readChars(1));
+                            } while (selectedAmount < 1);
 
-                            String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
+                            HashMap<String, Integer> map = new HashMap<>();
+                            map.put("101", 1);
+                            map.put("102", 2);
+                            map.put("103", 3);
+                            int selectedItemPrice = map.get(selectedItemCode);
 
-                            serial.write(newCardString + "\r\n");
+                            int newMoney = money - selectedItemPrice * selectedAmount;
 
-                            Thread.sleep(1000);
+                            if(newMoney < 0) {
+                                System.out.println("Insufficient amount in the card!!");
+                            } else {
+                                System.out.println("You spent: $" + selectedItemPrice);
+                                System.out.println("You have $" + newMoney + " left in your card");
+                                byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
+                                String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
 
-                            System.out.println("Transaction Successfully finished");
+                                String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
+
+                                serial.write(newCardString + "\r\n");
+
+                                Thread.sleep(1000);
+
+                                System.out.println("Transaction Successfully finished");
+                            }
                         }
+                    } else if (args[0].equals("atm")) {
+                        System.out.println("Reminder: your card money limit is $30.");
+                        System.out.println("Enter the amount of money to put into card: ");
+//                        Keypad keypadItem = Keypad.getKeypadInstance();
+//                        String selectedItemCode = keypadItem.readChars(2);
                     }
                 }
             } catch (IOException | InterruptedException e) {

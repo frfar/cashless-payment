@@ -47,48 +47,48 @@ public class Main {
 //            e.printStackTrace();
 //        }
 
-        serial.addListener(event -> {
-            try {
-                System.out.println(event.getAsciiString().trim());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
 //        serial.addListener(event -> {
 //            try {
-//                String cardString = event.getAsciiString().trim();
-//                System.out.println(cardString);
-//
-//                String[] cardStrings = cardString.split(" ");
-//
-//                String cardId = cardStrings[0];
-//                String encodedCardHmac = cardStrings[1];
-//                String encodedCardMoney = cardStrings[2];
-//
-//                System.out.println("Enter the passcode:");
-//                Keypad keypad = Keypad.getKeypadInstance();
-//                String userPassword = keypad.readPassword();
-//                byte[] userPasswordBytes = userPassword.getBytes();
-//                System.out.println("You have entered: " + userPassword);
-//
-//                byte[] userHmac = SHA256.getHMAC(cardId, userPasswordBytes);
-//                String encodedUserHmac = new String(Base64.getEncoder().encode(userHmac));
-//
-//                if(encodedCardHmac.equals(encodedUserHmac)) {
-//                    System.out.println("You have entered the right passcode!!");
-//
-//                    System.out.println("encoded card money is: " + encodedCardMoney);
-//                    byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
-//                    byte[] cardMoney = AES.decrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
-//
-//                    for (int i = 0; i < cardMoney.length; i++) {
-//                        System.out.println(cardMoney[i]);
-//                    }
-//                }
+//                System.out.println(event.getAsciiString().trim());
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
 //        });
+        serial.addListener(event -> {
+            try {
+                String cardString = event.getAsciiString().trim();
+                System.out.println(cardString);
+
+                String[] cardStrings = cardString.split(" ");
+
+                String cardId = cardStrings[0];
+                String encodedCardHmac = cardStrings[1];
+                String encodedCardMoney = cardStrings[2];
+
+                System.out.println("Enter the passcode:");
+                Keypad keypad = Keypad.getKeypadInstance();
+                String userPassword = keypad.readPassword();
+                byte[] userPasswordBytes = userPassword.getBytes();
+                System.out.println("You have entered: " + userPassword);
+
+                byte[] userHmac = SHA256.getHMAC(cardId, userPasswordBytes);
+                String encodedUserHmac = new String(Base64.getEncoder().encode(userHmac));
+
+                if(encodedCardHmac.equals(encodedUserHmac)) {
+                    System.out.println("You have entered the right passcode!!");
+
+                    System.out.println("encoded card money is: " + encodedCardMoney);
+                    byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
+                    byte[] cardMoney = AES.decrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
+
+                    for (int i = 0; i < cardMoney.length; i++) {
+                        System.out.println(cardMoney[i]);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
 //        serial.addListener((SerialDataEventListener) event -> {
 //            try {

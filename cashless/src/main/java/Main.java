@@ -81,9 +81,27 @@ public class Main {
                     byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
                     byte[] cardMoney = AES.decrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 
-                    System.out.println((int) cardMoney[0]);
+                    int money = cardMoney[0];
+                    System.out.println(money);
+
+                    int newMoney = money - 2;
+
+                    if(newMoney < 0) {
+                        System.out.println("Insufficient amount in the card!!");
+                    }
+
+                    byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
+                    String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
+
+                    String newCardString = cardStrings[0] + " " + cardStrings[1] + encodedNewMoney;
+
+                    serial.write(newCardString + "\r\n");
+
+                    Thread.sleep(1000);
+
+                    System.out.println("Transaction Successfully finished");
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         });

@@ -81,7 +81,7 @@ public class Main {
                     byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
                     byte[] cardMoney = AES.decrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 
-                    System.out.println(Integer.parseInt(new String(cardMoney),16));
+                    System.out.println((int) cardMoney[0]);
                 }
             } catch (IOException e) {
                 e.printStackTrace();

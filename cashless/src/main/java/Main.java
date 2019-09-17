@@ -38,16 +38,41 @@ public class Main {
         byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
         String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
         System.out.println(id + " " + encodedHmac + " " + encodedMoney);
-        try {
-            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
-            Thread.sleep(1000);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
+//            Thread.sleep(1000);
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         serial.addListener(event -> {
             try {
-                System.out.println("Received: " + event.getAsciiString());
+                String cardString = event.getAsciiString().trim();
+
+                String[] cardStrings = cardString.split(" ");
+
+                String cardId = cardStrings[0];
+                String encodedCardHmac = cardStrings[1];
+                String encodedCardMoney = cardStrings[2];
+
+                Keypad keypad = Keypad.getKeypadInstance();
+                String userPassword = keypad.readPassword();
+                byte[] userPasswordBytes = userPassword.getBytes();
+                System.out.println("You have entered: " + userPassword);
+
+                byte[] userHmac = SHA256.getHMAC(cardId, userPasswordBytes);
+                String encodedUserHmac = new String(Base64.getEncoder().encode(userHmac));
+
+                if(encodedCardHmac.equals(encodedUserHmac)) {
+                    System.out.println("You have entered the right passcode!!");
+
+                    byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
+                    byte[] cardMoney = AES.decrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
+
+                    for (int i = 0; i < cardMoney.length; i++) {
+                        System.out.println(cardMoney[i]);
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

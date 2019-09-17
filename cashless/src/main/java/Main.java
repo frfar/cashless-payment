@@ -22,22 +22,24 @@ public class Main {
                 .flowControl(FlowControl.NONE);
 
         try {
+            System.out.println("Initializing the connections!!");
             serial.open(config);
             Thread.sleep(5000);
+            System.out.println("Connection setup successfully!!");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
-        String id = "8223372036851235807";
-        String password = "1991";
-        byte[] passwordBytes = password.getBytes();
-
-        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
-        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
-
-        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
-        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
-        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
+//        String id = "8223372036851235807";
+//        String password = "1991";
+//        byte[] passwordBytes = password.getBytes();
+//
+//        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
+//        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
+//
+//        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
+//        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
+//        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
 //        try {
 //            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
 //            Thread.sleep(1000);
@@ -48,6 +50,7 @@ public class Main {
         serial.addListener(event -> {
             try {
                 String cardString = event.getAsciiString().trim();
+                System.out.println(cardString);
 
                 String[] cardStrings = cardString.split(" ");
 
@@ -55,6 +58,7 @@ public class Main {
                 String encodedCardHmac = cardStrings[1];
                 String encodedCardMoney = cardStrings[2];
 
+                System.out.println("Enter the passcode:");
                 Keypad keypad = Keypad.getKeypadInstance();
                 String userPassword = keypad.readPassword();
                 byte[] userPasswordBytes = userPassword.getBytes();
@@ -66,6 +70,7 @@ public class Main {
                 if(encodedCardHmac.equals(encodedUserHmac)) {
                     System.out.println("You have entered the right passcode!!");
 
+                    System.out.println("encoded card money is: " + encodedCardMoney);
                     byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
                     byte[] cardMoney = AES.decrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 

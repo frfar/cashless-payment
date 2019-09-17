@@ -50,6 +50,7 @@ public class Keypad {
             password.append(readKeyPressed());
             System.out.print("*");
         }
+        System.lineSeparator();
 
         return password.toString();
     }
@@ -65,6 +66,7 @@ public class Keypad {
                 System.out.print(key);
             }
         }
+        System.lineSeparator();
 
         return password.toString();
     }

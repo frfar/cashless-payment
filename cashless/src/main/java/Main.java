@@ -29,7 +29,7 @@ public class Main {
         try {
             System.out.println("Initializing the connection!!");
             serial.open(config);
-            Thread.sleep(5000);
+            Thread.sleep(3000);
             System.out.println("Connection setup successfully!!");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -70,11 +70,10 @@ public class Main {
                 String encodedCardHmac = cardStrings[1];
                 String encodedCardMoney = cardStrings[2];
 
-                System.out.println("Enter the 4-digit passcode:");
+                System.out.println("Enter your 4-digit passcode:");
                 Keypad keypad = Keypad.getKeypadInstance();
                 String userPassword = keypad.readPassword();
                 byte[] userPasswordBytes = userPassword.getBytes();
-                System.out.println("You have entered: " + userPassword);
 
                 byte[] userHmac = SHA256.getHMAC(cardId, userPasswordBytes);
                 String encodedUserHmac = new String(Base64.getEncoder().encode(userHmac));
@@ -96,11 +95,11 @@ public class Main {
                         if (selectedItemCode.equals("000")) {
                             System.out.println("Transaction canceled");
                         } else {
-                            System.out.println("Enter the amount of selected item, 1 to 9");
+                            System.out.println("Enter the amount of selected item from 1 to 9");
                             int selectedAmount = -1;
                             do {
                                 if (selectedAmount == 0) {
-                                    System.out.println("Please enter amount > 0.");
+                                    System.out.println("Please enter amount > 0");
                                 }
                                 Keypad keypadAmount = Keypad.getKeypadInstance();
                                 selectedAmount = Integer.parseInt(keypadAmount.readChars(1, true));
@@ -132,35 +131,39 @@ public class Main {
                             }
                         }
                     } else if (args[0].equals("atm")) {
-                        System.out.println("Reminder: your card limit is $30.");
-                        System.out.println("Enter 1 for $5, 2 for $10, 3 for $30.");
+                        System.out.println("Reminder: your card limit is $30");
+                        System.out.println("Enter 1 for $5, 2 for $10, 3 for $30, or 0 to cancel");
                         Keypad keypadMoney = Keypad.getKeypadInstance();
                         String selectedMoneyCode = keypadMoney.readChars(1, true);
 
-                        HashMap<String, Integer> mapMoney = new HashMap<>();
-                        mapMoney.put("1", 5);
-                        mapMoney.put("2", 10);
-                        mapMoney.put("3", 30);
-
-                        int selectedMoney = mapMoney.get(selectedMoneyCode);
-
-                        int newMoney = money + selectedMoney;
-
-                        if(newMoney > 30) {
-                            System.out.println("Maximum amount reached in the card!!");
+                        if (selectedMoneyCode.equals("0")) {
+                            System.out.println("Transaction canceled");
                         } else {
-                            System.out.println("You added: $" + selectedMoney);
-                            System.out.println("You now have $" + newMoney + " in your card");
-                            byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
-                            String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
+                            HashMap<String, Integer> mapMoney = new HashMap<>();
+                            mapMoney.put("1", 5);
+                            mapMoney.put("2", 10);
+                            mapMoney.put("3", 30);
 
-                            String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
+                            int selectedMoney = mapMoney.get(selectedMoneyCode);
 
-                            serial.write(newCardString + "\r\n");
+                            int newMoney = money + selectedMoney;
 
-                            Thread.sleep(1000);
+                            if(newMoney > 30) {
+                                System.out.println("Maximum amount reached in the card!!");
+                            } else {
+                                System.out.println("You added: $" + selectedMoney);
+                                System.out.println("You now have $" + newMoney + " in your card");
+                                byte[] encryptNewMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),new byte[]{(byte)newMoney});
+                                String encodedNewMoney = Base64.getEncoder().encodeToString(encryptNewMoney);
 
-                            System.out.println("Transaction successfully finished");
+                                String newCardString = cardStrings[0] + " " + cardStrings[1] + " " + encodedNewMoney;
+
+                                serial.write(newCardString + "\r\n");
+
+                                Thread.sleep(1000);
+
+                                System.out.println("Transaction successfully finished");
+                            }
                         }
                     }
                 }

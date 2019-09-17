@@ -53,6 +53,15 @@ public class Keypad {
         return password.toString();
     }
 
+    public String readChars(int n) throws IOException {
+        StringBuilder password = new StringBuilder();
+        for(int i = 0; i < n; i++) {
+            password.append(readKeyPressed());
+        }
+
+        return password.toString();
+    }
+
     public String readLine() throws IOException {
         StringBuilder line = new StringBuilder();
         String key;

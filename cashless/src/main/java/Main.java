@@ -30,22 +30,22 @@ public class Main {
             e.printStackTrace();
         }
 
-        String id = "8223372036851235807";
-        String password = "1991";
-        byte[] passwordBytes = password.getBytes();
-
-        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
-        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
-
-        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToBytes("10"));
-        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
-        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
-        try {
-            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
-            Thread.sleep(1000);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+//        String id = "8223372036851235807";
+//        String password = "1991";
+//        byte[] passwordBytes = password.getBytes();
+//
+//        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
+//        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
+//
+//        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToBytes("10"));
+//        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
+//        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
+//        try {
+//            serial.write(id + " " + encodedHmac + " " + encodedMoney +"\r\n");
+//            Thread.sleep(1000);
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         serial.addListener(event -> {
             try {

@@ -37,7 +37,7 @@ public class Main {
 //        byte[] hmac = SHA256.getHMAC(id, passwordBytes);
 //        String encodedHmac = new String(Base64.getEncoder().encode(hmac));
 //
-//        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("10"));
+//        byte[] encryptedMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToBytes("10"));
 //        String encodedMoney = new String(Base64.getEncoder().encode(encryptedMoney));
 //        System.out.println(id + " " + encodedHmac + " " + encodedMoney);
 //        try {
@@ -79,11 +79,9 @@ public class Main {
 
                     System.out.println("encoded card money is: " + encodedCardMoney);
                     byte[] encryptCardMoney = Base64.getDecoder().decode(encodedCardMoney);
-                    byte[] cardMoney = AES.decrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
+                    byte[] cardMoney = AES.decrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"),encryptCardMoney);
 
-                    for (int i = 0; i < cardMoney.length; i++) {
-                        System.out.println(cardMoney[i]);
-                    }
+                    System.out.println();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -96,7 +94,7 @@ public class Main {
 //                System.out.println("Messaged Received from Card:");
 //                System.out.print(event.getAsciiString());
 //
-//                byte[] encryptedMoney = AES.encrypt(Utils.hexStringToByte("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToByte("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToByte("6bc1bee22e409f96"));
+//                byte[] encryptedMoney = AES.encrypt(Utils.hexStringToBytes("2b7e151628aed2a6abf7158809cf4f3c"), Utils.hexStringToBytes("000102030405060708090a0b0c0d0e0f"), Utils.hexStringToBytes("6bc1bee22e409f96"));
 //
 //                System.out.println("Please Enter your 4 digit pin:");
 //

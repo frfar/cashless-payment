@@ -1,7 +1,7 @@
 package security.utils;
 
 public class Utils {
-    public static byte[] hexStringToByte(String hex) {
+    public static byte[] hexStringToBytes(String hex) {
         byte[] ret = new byte[hex.length()/2];
         for (int i = 0; i < hex.length()/2; i++) {
             int index = i * 2;

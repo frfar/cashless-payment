@@ -6,6 +6,7 @@ import security.utils.Utils;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) {
@@ -84,7 +85,18 @@ public class Main {
                     int money = cardMoney[0];
                     System.out.println("You have " + money + " money in your card!!");
 
-                    int newMoney = money - 2;
+                    System.out.println("Coke $1: 101, Lays $2: 102, Pizza $3: 103. Or enter 000 to cancel");
+                    Keypad keypadItem = Keypad.getKeypadInstance();
+                    String selectedItemCode = keypadItem.readChars(3);
+                    if (selectedItemCode == "000") {
+                        System.out.println("Transaction canceled");
+                    }
+                    HashMap<String, Integer> map = new HashMap<>();
+                    map.put("101", 1);
+                    map.put("102", 2);
+                    map.put("103", 3);
+
+                    int newMoney = money - map.get(selectedItemCode);
 
                     if(newMoney < 0) {
                         System.out.println("Insufficient amount in the card!!");

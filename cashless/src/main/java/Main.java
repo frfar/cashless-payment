@@ -92,7 +92,7 @@ public class Main {
                         System.out.println("Coke $1: 101, Lays $2: 102, Pizza $3: 103. Or enter 000 to cancel");
                         Keypad keypadItem = Keypad.getKeypadInstance();
                         String selectedItemCode = keypadItem.readChars(3, true);
-                        if (selectedItemCode.equals("000")) {
+                        if (selectedItemCode.equals("000")  || Integer.parseInt(selectedItemCode) > 103 || Integer.parseInt(selectedItemCode) < 101) {
                             System.out.println("Transaction canceled");
                         } else {
                             System.out.println("Enter the amount of selected item from 1 to 9");
@@ -136,7 +136,7 @@ public class Main {
                         Keypad keypadMoney = Keypad.getKeypadInstance();
                         String selectedMoneyCode = keypadMoney.readChars(1, true);
 
-                        if (selectedMoneyCode.equals("0")) {
+                        if (selectedMoneyCode.equals("0") || Integer.parseInt(selectedMoneyCode) > 3) {
                             System.out.println("Transaction canceled");
                         } else {
                             HashMap<String, Integer> mapMoney = new HashMap<>();

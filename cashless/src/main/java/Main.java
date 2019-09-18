@@ -10,10 +10,18 @@ import java.util.HashMap;
 
 public class Main {
     public static void main(String[] args) {
+
+        if(args.length == 0) {
+            System.out.println("Provide either vm or atm as first argument!");
+            return;
+        }
         if (args[0].equals("vm")) {
             System.out.println("Welcome to the Cashless Payment System Vending Machine!");
         } else if (args[0].equals("atm")) {
             System.out.println("Welcome to the Cashless Payment System ATM!");
+        } else {
+            System.out.println("Provide either vm or atm as first argument!");
+            return;
         }
 
         final Serial serial = SerialFactory.createInstance();

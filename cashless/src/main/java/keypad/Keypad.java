@@ -24,7 +24,7 @@ public class Keypad {
     private Keypad() {
         Config config = null;
         try {
-            config = gson.fromJson(new FileReader("src/main/java/resources/config.json"),Config.class);
+            config = gson.fromJson(new FileReader("src/main/resources/config.json"),Config.class);
             command = new String[] {"sudo","usbhid-dump","-m",config.keypadId,"-es"};
             pb = new ProcessBuilder(Arrays.asList(command));
         } catch (FileNotFoundException e) {

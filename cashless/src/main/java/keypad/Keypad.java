@@ -1,8 +1,9 @@
 package keypad;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import com.google.gson.Gson;
+import config.Config;
+
+import java.io.*;
 import java.util.Arrays;
 
 public class Keypad {
@@ -13,13 +14,22 @@ public class Keypad {
     private static Process p;
     private static BufferedReader br;
 
-    private static final String[] command = new String[] {"sudo","usbhid-dump","-m","04d9:1203","-es"};
+    private static Gson gson = new Gson();
+
+    private static String[] command;
     private static final int numberOfLinePerKeyStroke = 6;
     private static final int lineNumberWithKeyStroke = 1;
     private static final int numberOfKeyStrokesInPassword = 4;
 
     private Keypad() {
-        pb = new ProcessBuilder(Arrays.asList(command));
+        Config config = null;
+        try {
+            config = gson.fromJson(new FileReader("src/main/java/resources/config.json"),Config.class);
+            command = new String[] {"sudo","usbhid-dump","-m",config.keypadId,"-es"};
+            pb = new ProcessBuilder(Arrays.asList(command));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public static Keypad getKeypadInstance() throws IOException {

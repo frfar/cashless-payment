@@ -19,6 +19,11 @@ const publicKey = eccrypto.getPublic(privateKey);
 app.get('/', (req, res) => {
     res.send('Hello World')
 })
+
+app.get('/publicKey', (req, res) => {
+    console.log(publicKey.toString('base64'));
+    res.status(200).send(publicKey.toString('base64'));
+})
    
 // demo1 based on documents of npm aes-js and eccrypto
 app.get('/demo1', (req, res) => {

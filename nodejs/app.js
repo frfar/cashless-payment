@@ -4,6 +4,12 @@ const crypto = require('crypto');
 const chalk = require('chalk');
 const express = require('express');
 const app = express();
+let connection = require('./SequelizeConnection');
+let sequelize = connection.sequelize();
+
+const cards = sequelize.import('./models/cards');
+
+
 
 //32 bytes key for aes
 var key_256 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -17,66 +23,106 @@ const privateKey = eccrypto.generatePrivate();
 const publicKey = eccrypto.getPublic(privateKey);
 
 app.get('/', (req, res) => {
-    res.send('Hello World')
+    res.send('Welcome to cashless');
 })
 
 app.get('/publicKey', (req, res) => {
     console.log(publicKey.toString('base64'));
     res.status(200).send(publicKey.toString('base64'));
-})
-   
-// demo1 based on documents of npm aes-js and eccrypto
-app.get('/demo1', (req, res) => {
-    const text = req.query.trans;
-    const textBytes = aesjs.utils.utf8.toBytes(text);
-    console.log(chalk.yellow(text));
-    let aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter());
-    const encryptedBytes = aesCtr.encrypt(textBytes);
-    // add more bytes to encrypted byte: not done
-    const encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
-    const msg = crypto.createHash("sha256").update(encryptedHex).digest();
- 
-    eccrypto.sign(privateKey, msg).then((sig) => {
-        const ret = encryptedHex.toString('base64') + sig.toString('base64');
-        console.log(sig.toString('base64'));
-        res.status(200).send(ret);
-    });
-})
-
-
-
-// demo 2 based on 
-// https://stackoverflow.com/questions/50922462/aes-cbc-pkcs5padding-iv-decryption-in-nodejs-encrypted-in-java/50925146
-// https://stackoverflow.com/questions/12710001/how-to-convert-uint8-array-to-base64-encoded-string
-// https://stackoverflow.com/questions/23097928/node-js-btoa-is-not-defined-error
+})  
 
 //convert key wich is utf8 array to string based 64
-const key2 = Buffer.from(String.fromCharCode.apply(null, key)).toString('base64');
+const keyBase64 = Buffer.from(String.fromCharCode.apply(null, key)).toString('base64');
 //iv based 64 | should random every time?
 const iv = crypto.randomBytes(16).toString('base64');
 
-console.log(chalk.yellow('keyBase64 is : ' + key2));
+console.log(chalk.yellow('keyBase64 is : ' + keyBase64));
 console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
 
-app.get('/demo2', (req,res) => {
-    const text = req.query.trans;
+// cardUniqueId, amount, vendingMachineId, type
+//search by uniqueId, if it's credit, add, limit 100.
+// if it's debit, check amount limit 0
+// remaining amount: encrypt and sign and send back as response
+//^ done
 
-    //cipherText is a string
-    const encryptedText = encrypt(text,key2,iv);
-    //console.log(encryptedText.length)
-    // encryptedText length = 24 bytes, which is 3/4 of length of 32 bytes key
-    //decrypt test
-    console.log(chalk.yellow('decrypt: ' + decrypt(encryptedText,key2,iv)));
+// add to transaction table
+app.get('/transaction', (req,res) => {
+    const amount = req.query.amount;
+    const unique_Id = req.query.unique_Id;
+    const vendingMachineId = req.query.vendingMachineId;
+    const type = req.query.type;
 
-    //convert to buffer or hash?
-    const msg = crypto.createHash("sha256").update(encryptedText).digest();
+    const STATUS_SUCCESS = 'Success';
+    const STATUS_UNDERFLOW = 'Underflow';
+    const STATUS_OVERFLOW = 'Overflow';
+    const UPPER_LIMIT = 100;
+    const LOWER_LIMIT = 0;
 
-    eccrypto.sign(privateKey, msg).then((sig) => {
-        const ret = encryptedText.toString('base64') + sig.toString('base64');
-        console.log(sig.toString('base64'));
-        res.status(200).send(ret);
-    });
+    cards.findOne({
+        where: {unique_Id : unique_Id}
+    }).then((card) => {
+        if(card){
+            if (type == '1'){ //credit
+                if (parseFloat(card.amount) + parseFloat(amount) >= UPPER_LIMIT){ //overflow
+                    res.status(400).json({
+                        'status': STATUS_OVERFLOW,
+                        'amount': card.amount
+                    });
+                }else{
+                    card.update({
+                        amount: parseFloat(card.amount) + parseFloat(amount)
+                    }).then((updatedCard) => {
+                        encryptAndSign(updatedCard.amount).then((msg)=>{
+                            res.status(200).json({
+                                'status': STATUS_SUCCESS,
+                                'amount': updatedCard.amount,
+                                'msg': msg
+                            });
+                        });
+                    });
+                }
+            }else if(type == '2'){ //debit
+                if (parseFloat(card.amount) - parseFloat(amount) < LOWER_LIMIT){ //underflow
+                    res.status(400).json({
+                        'status': STATUS_UNDERFLOW,
+                        'amount': card.amount
+                    });
+                }else{
+                    card.update({
+                        amount: parseFloat(card.amount) - parseFloat(amount)
+                    }).then((updatedCard) => {
+                        encryptAndSign(updatedCard.amount).then((msg)=>{
+                            res.status(200).json({
+                                'status': STATUS_SUCCESS,
+                                'amount': updatedCard.amount,
+                                'message' : msg
+                            });
+                        });
+                    });
+                }
+            }else{
+                res.status(400).json({'message': 'Invalid type'});
+            }
+        } else{
+            res.status(404).json({'message': 'Card not found'});
+        }
+    }).catch(err => {
+        console.log(err);
+        res.status(502).json({'message': 'Internal server error'});
+    })
 })
+
+const encryptAndSign = (msg) => {
+    const encryptedText = encrypt(toString(msg),keyBase64,iv);
+    const hashedText = crypto.createHash("sha256").update(encryptedText).digest();
+    return eccrypto.sign(privateKey, hashedText).then((sig) => {
+        // if (sig) ?
+        return {
+            'encryptedAmount' : encryptedText.toString('base64'),
+            'signature' : sig.toString('base64')
+        };
+    });
+}
 
 const encrypt = (plainText, keyBase64, ivBase64) => {
 

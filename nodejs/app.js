@@ -8,6 +8,7 @@ let connection = require('./SequelizeConnection');
 let sequelize = connection.sequelize();
 
 const cards = sequelize.import('./models/cards');
+const transactions = sequelize.import('./models/transactions');
 
 
 
@@ -73,6 +74,9 @@ app.get('/transaction', (req,res) => {
                         amount: parseFloat(card.amount) + parseFloat(amount)
                     }).then((updatedCard) => {
                         encryptAndSign(updatedCard.amount).then((msg)=>{
+                            //write to table
+                            console.log(amount,unique_Id, vendingMachineId, type);
+                            addTransaction(amount,unique_Id, vendingMachineId, type);
                             res.status(200).json({
                                 'status': STATUS_SUCCESS,
                                 'amount': updatedCard.amount,
@@ -92,6 +96,8 @@ app.get('/transaction', (req,res) => {
                         amount: parseFloat(card.amount) - parseFloat(amount)
                     }).then((updatedCard) => {
                         encryptAndSign(updatedCard.amount).then((msg)=>{
+                            //write to table
+                            addTransaction(amount,unique_Id, vendingMachineId, type);
                             res.status(200).json({
                                 'status': STATUS_SUCCESS,
                                 'amount': updatedCard.amount,
@@ -109,8 +115,26 @@ app.get('/transaction', (req,res) => {
     }).catch(err => {
         console.log(err);
         res.status(502).json({'message': 'Internal server error'});
-    })
-})
+    });
+});
+
+const addTransaction = (amount, unique_Id, vendingMachineId, type) => {
+    transactions.create({
+        card_id : unique_Id,
+        vending_machine_id : vendingMachineId,
+        amount : amount,
+        type : type
+    });
+
+    // transactions.build({
+    //     card_id : unique_Id,
+    //     vending_machine_id : vendingMachineId,
+    //     amount : amount,
+    //     type : type
+    // }).save().then(()=>{
+    //     console.log("data created");
+    // })
+}
 
 const encryptAndSign = (msg) => {
     const encryptedText = encrypt(toString(msg),keyBase64,iv);

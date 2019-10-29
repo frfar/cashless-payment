@@ -58,9 +58,9 @@ public class Main {
 
                     byte[] transactionBytes = transaction.getBytes();
                     File file = new File("/home/pi/Desktop/cards" + idm);
-                    FileOutputStream writer = new FileOutputStream(file, true);
-                    writer.write(transactionBytes);
-                    writer.close();
+                    FileOutputStream outputStream = new FileOutputStream(file, true);
+                    outputStream.write(transactionBytes);
+                    outputStream.close();
 
 //                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, NAME, TransactionService.Type.DEBIT);
 //                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();

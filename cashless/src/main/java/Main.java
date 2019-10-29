@@ -6,11 +6,14 @@ import keypad.Keypad;
 import security.AES;
 import security.SHA256;
 import security.utils.Utils;
+import transaction.ECCSignature;
+import transaction.Transaction;
 import web.SendTransactionErrorResponse;
 import web.SendTransactionResponse;
 import web.SendTransactionSuccessResponse;
 import web.TransactionService;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Base64;
@@ -44,23 +47,38 @@ public class Main {
                     String idm = felica.Utils.bin2hex(Arrays.copyOfRange(felicaResponse, 5, 13));
                     System.out.println("idm is: " + idm);
 
-                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, NAME, TransactionService.Type.DEBIT);
-                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
-                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+                    System.out.println("Enter your passcode");
 
-                    if (error != null) {
-                        System.out.println("There is an error!!");
-                        System.out.println(error);
-                    } else {
-                        System.out.println(success);
+                    Keypad keypad = Keypad.getKeypadInstance();
+                    String passcode = keypad.readPassword();
 
-                        File file = new File(idm);
+                    Transaction.setEccSignature(ECCSignature.getInstance());
 
-                        PrintWriter writer = new PrintWriter(new FileWriter(file));
-                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
-                        writer.close();
-                    }
-                    System.out.println(response);
+                    Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+
+                    byte[] transactionBytes = transaction.getBytes();
+                    File file = new File("/home/pi/cards/" + idm);
+                    FileOutputStream writer = new FileOutputStream(file, true);
+                    writer.write(transactionBytes);
+                    writer.close();
+
+//                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, NAME, TransactionService.Type.DEBIT);
+//                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
+//                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+//
+//                    if (error != null) {
+//                        System.out.println("There is an error!!");
+//                        System.out.println(error);
+//                    } else {
+//                        System.out.println(success);
+//
+//                        File file = new File(idm);
+//
+//                        PrintWriter writer = new PrintWriter(new FileWriter(file));
+//                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
+//                        writer.close();
+//                    }
+//                    System.out.println(response);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

@@ -9,8 +9,8 @@ let sequelize = connection.sequelize();
 
 const cards = sequelize.import('./models/cards');
 const transactions = sequelize.import('./models/transactions');
-
-
+const vending_machines = sequelize.import('./models/vending_machines');
+const transaction_types = sequelize.import('./models/transaction_types');
 
 //32 bytes key for aes
 var key_256 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -47,15 +47,22 @@ console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
 //^ done
 
 // add to transaction table
+//^done
+
+// change stuff
+// return ecrypted remaining amount, not amount of transaction.
+//^done
 app.get('/transaction', (req,res) => {
     const amount = req.query.amount;
     const unique_Id = req.query.unique_Id;
-    const vendingMachineId = req.query.vendingMachineId;
+    const vendingMachineName = req.query.vendingMachineName;
     const type = req.query.type;
+    const passcode = req.query.passcode;
 
     const STATUS_SUCCESS = 'Success';
-    const STATUS_UNDERFLOW = 'Underflow';
-    const STATUS_OVERFLOW = 'Overflow';
+    const STATUS_FAIL = 'Fail';
+    const MSG_UNDERFLOW = 'Underflow';
+    const MSG_OVERFLOW = 'Overflow';
     const UPPER_LIMIT = 100;
     const LOWER_LIMIT = 0;
 
@@ -63,77 +70,108 @@ app.get('/transaction', (req,res) => {
         where: {unique_Id : unique_Id}
     }).then((card) => {
         if(card){
-            if (type == '1'){ //credit
-                if (parseFloat(card.amount) + parseFloat(amount) >= UPPER_LIMIT){ //overflow
-                    res.status(400).json({
-                        'status': STATUS_OVERFLOW,
-                        'amount': card.amount
-                    });
-                }else{
-                    card.update({
-                        amount: parseFloat(card.amount) + parseFloat(amount)
-                    }).then((updatedCard) => {
-                        encryptAndSign(updatedCard.amount).then((msg)=>{
-                            //write to table
-                            console.log(amount,unique_Id, vendingMachineId, type);
-                            addTransaction(amount,unique_Id, vendingMachineId, type);
+            if (card.passcode == passcode){
+                vending_machines.findOne({
+                    where: {name: vendingMachineName}
+                }).then((vm) => {
+                    if(vm){
+                        transaction_types.findOne({
+                            where: {type: type}
+                        }).then((type) => {
+                            if(type.id == '1'){ //credit
+                                if(parseFloat(card.amount) + parseFloat(amount) >= UPPER_LIMIT){ //overflow
+                                    res.status(200).json({
+                                        'status': STATUS_FAIL,
+                                        'amount': card.amount,
+                                        'message': MSG_OVERFLOW
+                                    });
+                                }else{
+                                    card.update({
+                                        amount: Math.round(parseFloat(card.amount) * 100) / 100  +  Math.round(parseFloat(amount) * 100) / 100
+                                    }).then((updatedCard) => {
+                                        encryptAndSign(updatedCard.amount).then((msg)=>{
+                                            //write to table
+                                            addTransaction(amount,card.id, vm.id, type.id);
+                                            res.status(200).json({
+                                                'status': STATUS_SUCCESS,
+                                                'amount': Math.round(parseFloat(updatedCard.amount) * 100) / 100,
+                                                'message': msg
+                                            });
+                                        });
+                                    });
+                                }
+                            }else if(type.id == '2'){ //debit
+                                if (parseFloat(card.amount) - parseFloat(amount) < LOWER_LIMIT){ //underflow
+                                    res.status(200).json({
+                                        'status': STATUS_FAIL,
+                                        'amount': card.amount,
+                                        'message' : MSG_UNDERFLOW
+                                    });
+                                }else{
+                                    card.update({
+                                        amount: Math.round(parseFloat(card.amount) * 100) / 100  -  Math.round(parseFloat(amount) * 100) / 100
+                                    }).then((updatedCard) => {
+                                        encryptAndSign(updatedCard.amount).then((msg)=>{
+                                            //write to table
+                                            addTransaction(amount,card.id, vm.id, type.id);
+                                            res.status(200).json({
+                                                'status': STATUS_SUCCESS,
+                                                'amount': Math.round(parseFloat(updatedCard.amount) * 100) / 100,
+                                                'message' : msg
+                                            });
+                                        });
+                                    });
+                                }
+                            }else{
+                                res.status(200).json({
+                                    'status': STATUS_FAIL,
+                                    'message': 'Internal server error'
+                                });
+                            }
+                        }).catch(err => {
                             res.status(200).json({
-                                'status': STATUS_SUCCESS,
-                                'amount': updatedCard.amount,
-                                'msg': msg
+                                'status' : STATUS_FAIL,
+                                'message': 'Invalid type'
                             });
+                        })
+                    }else{
+                        res.status(200).json({
+                            'status' : STATUS_FAIL,
+                            'message': 'Invalid vending machine'
                         });
-                    });
-                }
-            }else if(type == '2'){ //debit
-                if (parseFloat(card.amount) - parseFloat(amount) < LOWER_LIMIT){ //underflow
-                    res.status(400).json({
-                        'status': STATUS_UNDERFLOW,
-                        'amount': card.amount
-                    });
-                }else{
-                    card.update({
-                        amount: parseFloat(card.amount) - parseFloat(amount)
-                    }).then((updatedCard) => {
-                        encryptAndSign(updatedCard.amount).then((msg)=>{
-                            //write to table
-                            addTransaction(amount,unique_Id, vendingMachineId, type);
-                            res.status(200).json({
-                                'status': STATUS_SUCCESS,
-                                'amount': updatedCard.amount,
-                                'message' : msg
-                            });
-                        });
-                    });
-                }
-            }else{
-                res.status(400).json({'message': 'Invalid type'});
+                    }
+                })
+            }else{ //invalid passcode
+                res.status(200).json({
+                    'status' : STATUS_FAIL,
+                    'message': 'Wrong passcode'
+                });
             }
-        } else{
-            res.status(404).json({'message': 'Card not found'});
+        } else{ // invalid cardId
+            res.status(200).json({
+                'status' : STATUS_FAIL,
+                'message': 'Card not found'
+            });
         }
     }).catch(err => {
         console.log(err);
-        res.status(502).json({'message': 'Internal server error'});
+        res.status(502).json({
+            'status' : STATUS_FAIL,
+            'message': 'Internal server error'
+        });
     });
 });
 
-const addTransaction = (amount, unique_Id, vendingMachineId, type) => {
+
+const addTransaction = (amount, cardId, vendingMachineId, type) => {
     transactions.create({
-        card_id : unique_Id,
+        card_id : cardId,
         vending_machine_id : vendingMachineId,
         amount : amount,
         type : type
-    });
-
-    // transactions.build({
-    //     card_id : unique_Id,
-    //     vending_machine_id : vendingMachineId,
-    //     amount : amount,
-    //     type : type
-    // }).save().then(()=>{
-    //     console.log("data created");
-    // })
+    }).catch(err => {
+        console.log(err);
+    })
 }
 
 const encryptAndSign = (msg) => {

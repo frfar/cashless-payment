@@ -32,7 +32,7 @@ public class TransactionService {
         query.addParameter("vendingMachineName", vendingMachineName);
 
         WebRequest req = new WebRequest();
-        String res = req.sendGet("http://localhost:3000/transaction", query);
+        String res = req.sendGet("http://19d69285.ngrok.io/transaction", query);
         System.out.println(res);
 
         JsonObject objectJson = new JsonParser().parse(res).getAsJsonObject();

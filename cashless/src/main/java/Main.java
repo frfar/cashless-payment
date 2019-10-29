@@ -11,7 +11,7 @@ import web.SendTransactionResponse;
 import web.SendTransactionSuccessResponse;
 import web.TransactionService;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -39,21 +39,30 @@ public class Main {
         cardReader.addCardReaderCallback(new CardReaderCallback() {
             @Override
             public void isCardPresent(FelicaManager felicaManager) {
-                byte[] felicaResponse = felicaManager.polling();
-                byte[] idm = Arrays.copyOfRange(felicaResponse,5,13);
-                System.out.println("idm is: " + felica.Utils.bin2hex(idm));
+                try {
+                    byte[] felicaResponse = felicaManager.polling();
+                    String idm = felica.Utils.bin2hex(Arrays.copyOfRange(felicaResponse, 5, 13));
+                    System.out.println("idm is: " + idm);
 
-                SendTransactionResponse response = TransactionService.sendTransaction(felica.Utils.bin2hex(idm), 2.0, NAME, TransactionService.Type.DEBIT);
-                SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
-                SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, NAME, TransactionService.Type.DEBIT);
+                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
+                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
 
-                if(error != null) {
-                    System.out.println("There is an error!!");
-                    System.out.println(error);
-                } else {
-                    System.out.println(success);
+                    if (error != null) {
+                        System.out.println("There is an error!!");
+                        System.out.println(error);
+                    } else {
+                        System.out.println(success);
+
+                        File file = new File(idm);
+
+                        PrintWriter writer = new PrintWriter(new FileWriter(file));
+                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
+                    }
+                    System.out.println(response);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-                System.out.println(response);
             }
         });
 

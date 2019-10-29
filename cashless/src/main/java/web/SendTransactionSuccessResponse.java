@@ -14,16 +14,3 @@ public class SendTransactionSuccessResponse {
                 '}';
     }
 }
-
-class TransactionMessage {
-    public String encryptedAmount;
-    public String signature;
-
-    @Override
-    public String toString() {
-        return "TransactionMessage{" +
-                "encryptedAmount='" + encryptedAmount + '\'' +
-                ", signature='" + signature + '\'' +
-                '}';
-    }
-}

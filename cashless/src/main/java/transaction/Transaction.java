@@ -29,7 +29,7 @@ public class Transaction {
     }
 
     private static byte[] getTransactionBytes(String atmID, String cardId, int amount, String passcode, byte[] hashKey) {
-        byte[] atmIDBytes = DatatypeConverter.parseHexBinary(atmID);
+        byte[] atmIDBytes = atmID.getBytes();
         byte[] cardIDBytes = DatatypeConverter.parseHexBinary(cardId);
 
         byte[] amountBytes = new byte[] {(byte) amount};

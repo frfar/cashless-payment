@@ -1,4 +1,3 @@
-import b.a.F;
 import com.pi4j.io.serial.*;
 import felica.CardReader;
 import felica.CardReaderCallback;

@@ -58,6 +58,7 @@ public class Main {
 
                         PrintWriter writer = new PrintWriter(new FileWriter(file));
                         writer.println(success.message.encryptedAmount + " " + success.message.signature);
+                        writer.close();
                     }
                     System.out.println(response);
                 } catch (Exception ex) {

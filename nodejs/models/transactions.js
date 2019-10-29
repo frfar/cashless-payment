@@ -9,11 +9,11 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     card_id: {
-      type: DataTypes.STRING(45),
+      type: DataTypes.INTEGER(20),
       allowNull: false,
       references: {
         model: 'cards',
-        key: 'unique_id'
+        key: 'id'
       }
     },
     vending_machine_id: {

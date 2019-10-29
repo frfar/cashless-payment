@@ -24,6 +24,10 @@ module.exports = function(sequelize, DataTypes) {
         model: 'users',
         key: 'id'
       }
+    },
+    passcode: {
+      type: DataTypes.STRING(16),
+      allowNull: false
     }
   }, {
     tableName: 'cards'

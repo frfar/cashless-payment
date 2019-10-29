@@ -58,8 +58,8 @@ public class Main {
 
                     byte[] transactionBytes = transaction.getBytes();
                     System.out.println("Size of the transaction is: " + transactionBytes.length);
-                    File file = new File("/home/pi/Desktop/cards" + idm);
-                    FileOutputStream outputStream = new FileOutputStream(file, true);
+                    File file = new File("/home/pi/Desktop/cards/" + idm);
+                    FileOutputStream outputStream = new FileOutputStream(file);
                     outputStream.write(transactionBytes);
                     outputStream.close();
 

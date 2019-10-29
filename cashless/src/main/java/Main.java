@@ -52,50 +52,50 @@ public class Main {
                     Keypad keypad = Keypad.getKeypadInstance();
                     String passcode = keypad.readPassword();
 
-                    Transaction.setEccSignature(ECCSignature.getInstance());
-
-                    File file = new File("/home/pi/Desktop/cards/" + idm);
-                    if(file.exists()) {
-                        FileInputStream inputStream = new FileInputStream(file);
-                        byte[] previousTransaction = new byte[(int) file.length()];
-                        inputStream.read(previousTransaction);
-
-                        int encryptionSize = previousTransaction[0];
-                        int signatureSize = previousTransaction[1];
-                        byte[] encryptionBytes = Arrays.copyOfRange(previousTransaction,2,2 + encryptionSize);
-
-                        byte[] signatureBytes = Arrays.copyOfRange(previousTransaction,2 + encryptionSize, 2 + encryptionSize + signatureSize);
-
-                        byte[] t = Transaction.getValue(encryptionBytes,signatureBytes,DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
-                        Transaction.printTransaction(t);
-                    }
-
-                    Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
-
-                    byte[] transactionBytes = transaction.getBytes();
-                    System.out.println("Size of the transaction is: " + transactionBytes.length);
-                    file = new File("/home/pi/Desktop/cards/" + idm);
-                    FileOutputStream outputStream = new FileOutputStream(file, true);
-                    outputStream.write(transactionBytes);
-                    outputStream.close();
-
-//                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, NAME, TransactionService.Type.DEBIT);
-//                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
-//                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+//                    Transaction.setEccSignature(ECCSignature.getInstance());
 //
-//                    if (error != null) {
-//                        System.out.println("There is an error!!");
-//                        System.out.println(error);
-//                    } else {
-//                        System.out.println(success);
+//                    File file = new File("/home/pi/Desktop/cards/" + idm);
+//                    if(file.exists()) {
+//                        FileInputStream inputStream = new FileInputStream(file);
+//                        byte[] previousTransaction = new byte[(int) file.length()];
+//                        inputStream.read(previousTransaction);
 //
-//                        File file = new File(idm);
+//                        int encryptionSize = previousTransaction[0];
+//                        int signatureSize = previousTransaction[1];
+//                        byte[] encryptionBytes = Arrays.copyOfRange(previousTransaction,2,2 + encryptionSize);
 //
-//                        PrintWriter writer = new PrintWriter(new FileWriter(file));
-//                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
-//                        writer.close();
+//                        byte[] signatureBytes = Arrays.copyOfRange(previousTransaction,2 + encryptionSize, 2 + encryptionSize + signatureSize);
+//
+//                        byte[] t = Transaction.getValue(encryptionBytes,signatureBytes,DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+//                        Transaction.printTransaction(t);
 //                    }
-//                    System.out.println(response);
+//
+//                    Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+//
+//                    byte[] transactionBytes = transaction.getBytes();
+//                    System.out.println("Size of the transaction is: " + transactionBytes.length);
+//                    file = new File("/home/pi/Desktop/cards/" + idm);
+//                    FileOutputStream outputStream = new FileOutputStream(file, true);
+//                    outputStream.write(transactionBytes);
+//                    outputStream.close();
+
+                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, passcode, NAME, TransactionService.Type.DEBIT);
+                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
+                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+
+                    if (error != null) {
+                        System.out.println("There is an error!!");
+                        System.out.println(error);
+                    } else {
+                        System.out.println(success);
+
+                        File file = new File(idm);
+
+                        PrintWriter writer = new PrintWriter(new FileWriter(file));
+                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
+                        writer.close();
+                    }
+                    System.out.println(response);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

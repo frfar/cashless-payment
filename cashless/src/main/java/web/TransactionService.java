@@ -24,12 +24,13 @@ public class TransactionService {
         }
     }
 
-    public static SendTransactionResponse sendTransaction(String uniqueId, Double amount, String vendingMachineName, Type type) {
+    public static SendTransactionResponse sendTransaction(String uniqueId, Double amount, String passcode, String vendingMachineName, Type type) {
         QueryParameter query = new QueryParameter();
         query.addParameter("unique_Id", uniqueId);
         query.addParameter("type", type.getType());
         query.addParameter("amount", Double.toString(amount));
         query.addParameter("vendingMachineName", vendingMachineName);
+        query.addParameter("passcode", passcode);
 
         WebRequest req = new WebRequest();
         String res = req.sendGet("http://19d69285.ngrok.io/transaction", query);

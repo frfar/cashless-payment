@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 public class Main {
 
-    private static final String NAME = "vm1";
+    private static final String NAME = "vm123456";
     public static void main(String[] args) {
 
         if(args.length == 0) {

@@ -16,9 +16,7 @@ public class FelicaManager {
     }
 
     public static FelicaManager getInstance(CardChannel channel) {
-        if(felicaManager == null) {
-            felicaManager = new FelicaManager(channel);
-        }
+        felicaManager = new FelicaManager(channel);
 
         return felicaManager;
     }

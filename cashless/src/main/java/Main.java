@@ -57,6 +57,7 @@ public class Main {
                     Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
 
                     byte[] transactionBytes = transaction.getBytes();
+                    System.out.println("Size of the transaction is: " + transactionBytes.length);
                     File file = new File("/home/pi/Desktop/cards" + idm);
                     FileOutputStream outputStream = new FileOutputStream(file, true);
                     outputStream.write(transactionBytes);

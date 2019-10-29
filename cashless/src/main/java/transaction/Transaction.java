@@ -68,22 +68,40 @@ public class Transaction {
         return rawTransaction[16];
     }
 
-    public byte[] getBytes() {
-        byte[] c = new byte[encryption.length + signature.length];
-        System.arraycopy(encryption, 0, c, 0, encryption.length);
-        System.arraycopy(signature, 0, c, encryption.length, signature.length);
+    public static byte[] getValue(byte[] encryption, byte[] signature, byte[] aesIV) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+        if(!eccSignature.verify(encryption, signature)) {
+            return new byte[0];
+        }
 
-        return c;
+        return Objects.requireNonNull(AES.decrypt(aesKey, aesIV, encryption));
+    }
+
+    public static byte getAmount(byte[] encryption, byte[] signature, byte[] aesIV) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+        byte[] rawTransaction = getValue(encryption, signature, aesIV);
+
+        if(rawTransaction.length == 0) {
+            return -1;
+        }
+
+        return rawTransaction[16];
+    }
+
+    public byte[] getBytes() {
+        ByteBuffer buffer = ByteBuffer.allocate(encryption.length + signature.length + 2);
+        return buffer.put((byte)encryption.length).put((byte)signature.length).put(encryption).put(signature).array();
     }
 
      public void printTransaction() {
+        Transaction.printTransaction(transaction);
+    }
+
+    public static void printTransaction(byte[] transaction) {
         System.out.println("Printing the values of Transaction:");
         System.out.println("atm id : " + DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,0,8)));
         System.out.println("card id : " + DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,8,16)));
         System.out.println("amount : " + DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,16,17)));
         System.out.println("passcode : " + new String(Arrays.copyOfRange(transaction,17,21)));
         System.out.println("hash key : " + DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,21,29)));
-
     }
 
     @Override

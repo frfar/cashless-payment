@@ -1,3 +1,4 @@
+import b.a.F;
 import com.pi4j.io.serial.*;
 import felica.CardReader;
 import felica.CardReaderCallback;
@@ -54,12 +55,28 @@ public class Main {
 
                     Transaction.setEccSignature(ECCSignature.getInstance());
 
+                    File file = new File("/home/pi/Desktop/cards/" + idm);
+                    if(file.exists()) {
+                        FileInputStream inputStream = new FileInputStream(file);
+                        byte[] previousTransaction = new byte[(int) file.length()];
+                        inputStream.read(previousTransaction);
+
+                        int encryptionSize = previousTransaction[0];
+                        int signatureSize = previousTransaction[1];
+                        byte[] encryptionBytes = Arrays.copyOfRange(previousTransaction,2,2 + encryptionSize);
+
+                        byte[] signatureBytes = Arrays.copyOfRange(previousTransaction,2 + encryptionSize, 2 + encryptionSize + signatureSize);
+
+                        byte[] t = Transaction.getValue(encryptionBytes,signatureBytes,DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+                        Transaction.printTransaction(t);
+                    }
+
                     Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
 
                     byte[] transactionBytes = transaction.getBytes();
                     System.out.println("Size of the transaction is: " + transactionBytes.length);
-                    File file = new File("/home/pi/Desktop/cards/" + idm);
-                    FileOutputStream outputStream = new FileOutputStream(file);
+                    file = new File("/home/pi/Desktop/cards/" + idm);
+                    FileOutputStream outputStream = new FileOutputStream(file, true);
                     outputStream.write(transactionBytes);
                     outputStream.close();
 

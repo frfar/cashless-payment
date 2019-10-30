@@ -85,9 +85,9 @@ public class Main {
 
                     if (error != null) {
                         System.out.println("There is an error!!");
-                        System.out.println(error);
+                        System.out.println(error.message);
                     } else {
-                        System.out.println(success);
+                        System.out.println("You have " + success.amount + " left in your account!!");
 
                         File file = new File(idm);
 
@@ -95,7 +95,6 @@ public class Main {
                         writer.println(success.message.encryptedAmount + " " + success.message.signature);
                         writer.close();
                     }
-                    System.out.println(response);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

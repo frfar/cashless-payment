@@ -90,7 +90,7 @@ app.get('/transaction', (req,res) => {
                                         amount: Math.round(parseFloat(card.amount) * 100) / 100  +  Math.round(parseFloat(amount) * 100) / 100
                                     }).then((updatedCard) => {
                                         encryptAndSign(updatedCard.amount).then((msg)=>{
-                                            //write to table
+                                            //write to transaction table
                                             addTransaction(amount,card.id, vm.id, type.id);
                                             res.status(200).json({
                                                 'status': STATUS_SUCCESS,
@@ -112,7 +112,7 @@ app.get('/transaction', (req,res) => {
                                         amount: Math.round(parseFloat(card.amount) * 100) / 100  -  Math.round(parseFloat(amount) * 100) / 100
                                     }).then((updatedCard) => {
                                         encryptAndSign(updatedCard.amount).then((msg)=>{
-                                            //write to table
+                                            //write to transaction table
                                             addTransaction(amount,card.id, vm.id, type.id);
                                             res.status(200).json({
                                                 'status': STATUS_SUCCESS,
@@ -178,7 +178,7 @@ const encryptAndSign = (msg) => {
     const encryptedText = encrypt(toString(msg),keyBase64,iv);
     const hashedText = crypto.createHash("sha256").update(encryptedText).digest();
     return eccrypto.sign(privateKey, hashedText).then((sig) => {
-        // if (sig) ?
+        // if sig not ok?
         return {
             'encryptedAmount' : encryptedText.toString('base64'),
             'signature' : sig.toString('base64')

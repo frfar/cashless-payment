@@ -1,23 +1,21 @@
-import com.pi4j.io.serial.*;
+import com.pi4j.io.serial.Serial;
 import felica.CardReader;
 import felica.CardReaderCallback;
 import felica.FelicaManager;
 import keypad.Keypad;
 import security.AES;
-import security.SHA256;
 import security.utils.Utils;
-import transaction.ECCSignature;
-import transaction.Transaction;
 import web.SendTransactionErrorResponse;
 import web.SendTransactionResponse;
 import web.SendTransactionSuccessResponse;
 import web.TransactionService;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 
 public class Main {
 

@@ -74,6 +74,7 @@ public class Main {
 
                         if(!userPasscode.equals(passcode)) {
                             System.out.println("Invalid passcode detected!!");
+                            return;
                         }
 
                         System.out.println("The amount in card is: " + amount);

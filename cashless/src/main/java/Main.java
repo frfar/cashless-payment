@@ -27,8 +27,8 @@ import java.util.Base64;
 public class Main {
 
     private static final String NAME = "vm123456";
-    private static File privatekeyFile = new File("src/test/resources/ec256-key-pair-pkcs8.pem");
-    private static File publickeyFile = new File("src/test/resources/ec256-public.pem");
+    private static File privatekeyFile = new File("ec256-key-pair-pkcs8.pem");
+    private static File publickeyFile = new File("ec256-public.pem");
 
     public static void main(String[] args) {
 

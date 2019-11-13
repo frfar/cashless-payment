@@ -88,7 +88,7 @@ public class Main {
 
                         System.out.println("Making a purchase of $5");
 
-                        writeTrasaction(mfCard, mfReaderWriter, newAmount);
+                        writeTrasaction(mfCard, mfReaderWriter, newAmount, passcode);
 
                         System.out.println("The remaining amount in card is: " + newAmount);
 
@@ -281,12 +281,12 @@ public class Main {
         System.out.println("Transaction successfully finished");
     }
 
-    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount) {
+    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount, String passcode) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,"1234", key);
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcode, key);
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

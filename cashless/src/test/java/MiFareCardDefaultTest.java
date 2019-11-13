@@ -1,4 +1,5 @@
-import mifare.*;
+import mifare.Acr122Device;
+import mifare.MifareManager;
 import org.nfctools.mf.MfCardListener;
 import org.nfctools.mf.MfReaderWriter;
 import org.nfctools.mf.card.MfCard;
@@ -11,9 +12,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.util.Random;
 import java.util.Scanner;
 
-public class MiFareCardTest {
+public class MiFareCardDefaultTest {
 
     private static File privatekeyFile = new File("src/test/resources/ec256-key-pair-pkcs8.pem");
     private static File publickeyFile = new File("src/test/resources/ec256-public.pem");
@@ -37,30 +39,17 @@ public class MiFareCardTest {
                     System.out.println("Card Detected!!");
 
                     try {
-                        PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
-                        double amount = transaction.getAmount();
-                        String passcode = transaction.getPasscode();
-                        System.out.println("The amount in card is: " + amount);
 
-                        System.out.println("Enter the amount you want to add");
-                        Scanner scanner = new Scanner(System.in);
-                        System.out.println(System.in);
-                        double addedAmount = scanner.nextDouble();
+                        int random = (int) (Math.random() * 8999 + 1000);
 
-                        if(amount + addedAmount > 100) {
-                            System.out.println("You can't add more than $100!");
-                            return;
-                        }
-
-                        double newAmount = amount + addedAmount;
-
-                        writeTrasaction(mfCard, mfReaderWriter, newAmount, passcode);
+                        System.out.println("Your passcode is: " + random);
+                        writeTrasaction(mfCard, mfReaderWriter, 100, Integer.toString(random));
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
 
-                        if(newAmount == retrievedAmount) {
-                            System.out.println("The final amount in card is: " + newAmount);
+                        if(100 == retrievedAmount) {
+                            System.out.println("The final amount in card is: " + 100);
                         } else {
                             System.out.println("Transaction failed!!");
                         }

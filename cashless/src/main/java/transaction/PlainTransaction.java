@@ -22,7 +22,7 @@ public class PlainTransaction {
     /**
      * amount for the transaction.
      */
-    private int amount;
+    private double amount;
 
     /**
      * passcode of the card.
@@ -42,7 +42,7 @@ public class PlainTransaction {
      * @param passcode
      * @param hashkey
      */
-    public PlainTransaction(String vmId, String cardId, int amount, String passcode, byte[] hashkey) {
+    public PlainTransaction(String vmId, String cardId, double amount, String passcode, byte[] hashkey) {
         this.vmId = vmId;
         this.cardId = cardId;
         this.amount = amount;
@@ -59,7 +59,7 @@ public class PlainTransaction {
     public static PlainTransaction parse(byte[] transaction) {
         String vmId = DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,0,4));
         String atmId = DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,4,12));
-        int amount = (int) (transaction[12] + transaction[13] * 0.01);
+        double amount = (transaction[12] + transaction[13] * 0.01);
         StringBuilder passcode = new StringBuilder();
         passcode.append((transaction[14] & 0xF0) >> 4);
         passcode.append((transaction[14] & 0x0F));
@@ -78,7 +78,7 @@ public class PlainTransaction {
         byte[] vmIdBytes = DatatypeConverter.parseHexBinary(vmId);
         byte[] cardIdBytes = DatatypeConverter.parseHexBinary(cardId);
         byte amountDollars = (byte) Math.floor(amount);
-        byte amountCents = (byte) ((byte) (amount - amountDollars) * 100);
+        byte amountCents =  (byte) ((amount - amountDollars) * 100);
         byte passcodeLSB = (byte) ((((passcode.charAt(0) - '0') & 0x0F) << 4) + ((passcode.charAt(1) - '0') & 0x0F));
         byte passcodeMSB = (byte) ((((passcode.charAt(2) - '0') & 0x0F) << 4) + ((passcode.charAt(3) - '0') & 0x0F));
         ByteBuffer buffer = ByteBuffer.allocate(vmIdBytes.length + cardIdBytes.length + 4 + hashkey.length);
@@ -95,7 +95,7 @@ public class PlainTransaction {
         return cardId;
     }
 
-    public int getAmount() {
+    public double getAmount() {
         return amount;
     }
 

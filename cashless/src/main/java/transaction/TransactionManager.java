@@ -3,10 +3,7 @@ package transaction;
 import security.AES;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
@@ -36,13 +33,9 @@ public class TransactionManager {
         ECCSign eccSign = ECCSign.getInstance(privatekeyFile);
         byte[] signature = eccSign.sign(encryption);
 
-        BufferedReader reader = new BufferedReader(new FileReader(publickeyFile));
-        String publickey = reader.lines().collect(Collectors.joining());
-        byte[] publickeyDecoded = ECCVerify.getRawPublicKey(publickey);
-        System.out.println(publickeyDecoded.length);
-        ByteBuffer buffer = ByteBuffer.allocate(encryption.length + signature.length + iv.length + publickeyDecoded.length + 2);
+        ByteBuffer buffer = ByteBuffer.allocate(encryption.length + signature.length + iv.length + 2);
 
-        buffer.put((byte)encryption.length).put((byte) signature.length).put(encryption).put(signature).put(iv).put(publickeyDecoded);
+        buffer.put((byte)encryption.length).put((byte) signature.length).put(encryption).put(signature).put(iv);
 
         return buffer.array();
 
@@ -54,7 +47,7 @@ public class TransactionManager {
      * @return
      * @throws GeneralSecurityException
      */
-    public static PlainTransaction verifyAndDecrypt(byte[] transactionBytes) throws GeneralSecurityException {
+    public static PlainTransaction verifyAndDecrypt(byte[] transactionBytes, File publickeyFile) throws GeneralSecurityException, FileNotFoundException {
 
         int encryptionSize = transactionBytes[0];
         int signatureSize = transactionBytes[1];
@@ -62,8 +55,8 @@ public class TransactionManager {
         byte[] encryptionBytes = Arrays.copyOfRange(transactionBytes,2,2 + encryptionSize);
         byte[] signatureBytes = Arrays.copyOfRange(transactionBytes,2 + encryptionSize, 2 + encryptionSize + signatureSize);
         byte[] iv = Arrays.copyOfRange(transactionBytes, 2 + encryptionSize + signatureSize, 2 + encryptionSize + signatureSize + 16);
-        byte[] publickey = Arrays.copyOfRange(transactionBytes, 2 + encryptionSize + signatureSize + 16, 2 + encryptionSize + signatureSize + 107);
-        ECCVerify eccVerify = ECCVerify.getInstance(publickey);
+
+        ECCVerify eccVerify = ECCVerify.getInstance(publickeyFile);
         boolean verification = eccVerify.verify(encryptionBytes,signatureBytes);
 
         if(!verification) {

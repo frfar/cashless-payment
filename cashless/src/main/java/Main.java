@@ -3,23 +3,33 @@ import felica.CardReader;
 import felica.CardReaderCallback;
 import felica.FelicaManager;
 import keypad.Keypad;
+import mifare.Acr122Device;
+import mifare.MifareManager;
+import org.nfctools.mf.MfCardListener;
+import org.nfctools.mf.MfReaderWriter;
+import org.nfctools.mf.card.MfCard;
 import security.AES;
 import security.utils.Utils;
+import transaction.PlainTransaction;
+import transaction.TransactionManager;
 import web.SendTransactionErrorResponse;
 import web.SendTransactionResponse;
 import web.SendTransactionSuccessResponse;
 import web.TransactionService;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import javax.smartcardio.CardException;
+import java.io.*;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 
 public class Main {
 
     private static final String NAME = "vm123456";
+    private static File privatekeyFile = new File("src/test/resources/ec256-key-pair-pkcs8.pem");
+    private static File publickeyFile = new File("src/test/resources/ec256-public.pem");
+
     public static void main(String[] args) {
 
         if(args.length == 0) {
@@ -35,69 +45,116 @@ public class Main {
             return;
         }
 
-        CardReader cardReader = new CardReader();
+        System.out.println("Testing the MiFare Card Utility!!");
 
-        cardReader.addCardReaderCallback(new CardReaderCallback() {
-            @Override
-            public void isCardPresent(FelicaManager felicaManager) {
-                try {
-                    byte[] felicaResponse = felicaManager.polling();
-                    String idm = felica.Utils.bin2hex(Arrays.copyOfRange(felicaResponse, 5, 13));
-                    System.out.println("idm is: " + idm);
+        Acr122Device acr122;
+        try {
+            acr122 = new Acr122Device();
+        } catch (RuntimeException re) {
+            System.out.println("No ACR122 reader found.");
+            return;
+        }
+        try {
+            acr122.open();
+            acr122.listen(new MfCardListener() {
+                @Override
+                public void cardDetected(MfCard mfCard, MfReaderWriter mfReaderWriter) throws IOException {
+                    System.out.println("Card Detected!!");
+                    //writeInitialTrasaction(mfCard, mfReaderWriter);
 
-                    System.out.println("Enter your passcode");
+                    try {
+                        PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
+                        double amount = transaction.getAmount();
+                        System.out.println("The amount in card is: " + amount);
 
-                    Keypad keypad = Keypad.getKeypadInstance();
-                    String passcode = keypad.readPassword();
+                        if(amount < 5) {
+                            System.out.println("You don't have Sufficient balance!");
+                            return;
+                        }
 
-//                    Transaction.setEccSignature(ECCSignature.getInstance());
-//
-//                    File file = new File("/home/pi/Desktop/cards/" + idm);
-//                    if(file.exists()) {
-//                        FileInputStream inputStream = new FileInputStream(file);
-//                        byte[] previousTransaction = new byte[(int) file.length()];
-//                        inputStream.read(previousTransaction);
-//
-//                        int encryptionSize = previousTransaction[0];
-//                        int signatureSize = previousTransaction[1];
-//                        byte[] encryptionBytes = Arrays.copyOfRange(previousTransaction,2,2 + encryptionSize);
-//
-//                        byte[] signatureBytes = Arrays.copyOfRange(previousTransaction,2 + encryptionSize, 2 + encryptionSize + signatureSize);
-//
-//                        byte[] t = Transaction.getValue(encryptionBytes,signatureBytes,DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
-//                        Transaction.printTransaction(t);
-//                    }
-//
-//                    Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
-//
-//                    byte[] transactionBytes = transaction.getBytes();
-//                    System.out.println("Size of the transaction is: " + transactionBytes.length);
-//                    file = new File("/home/pi/Desktop/cards/" + idm);
-//                    FileOutputStream outputStream = new FileOutputStream(file, true);
-//                    outputStream.write(transactionBytes);
-//                    outputStream.close();
+                        double newAmount = amount - 5;
 
-                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, passcode, NAME, TransactionService.Type.DEBIT);
-                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
-                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+                        writeTrasaction(mfCard, mfReaderWriter, newAmount);
 
-                    if (error != null) {
-                        System.out.println("There is an error!!");
-                        System.out.println(error.message);
-                    } else {
-                        System.out.println("You have " + success.amount + " left in your account!!");
+                        System.out.println("The remaining amount in card is: " + newAmount);
 
-                        File file = new File(idm);
-
-                        PrintWriter writer = new PrintWriter(new FileWriter(file));
-                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
-                        writer.close();
+                    } catch (CardException | GeneralSecurityException e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+
                 }
-            }
-        });
+            });
+            System.out.println("Press ENTER to exit");
+            System.in.read();
+
+            acr122.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+//        CardReader cardReader = new CardReader();
+//
+//        cardReader.addCardReaderCallback(new CardReaderCallback() {
+//            @Override
+//            public void isCardPresent(FelicaManager felicaManager) {
+//                try {
+//                    byte[] felicaResponse = felicaManager.polling();
+//                    String idm = felica.Utils.bin2hex(Arrays.copyOfRange(felicaResponse, 5, 13));
+//                    System.out.println("idm is: " + idm);
+//
+//                    System.out.println("Enter your passcode");
+//
+//                    Keypad keypad = Keypad.getKeypadInstance();
+//                    String passcode = keypad.readPassword();
+//
+////                    Transaction.setEccSignature(ECCSignature.getInstance());
+////
+////                    File file = new File("/home/pi/Desktop/cards/" + idm);
+////                    if(file.exists()) {
+////                        FileInputStream inputStream = new FileInputStream(file);
+////                        byte[] previousTransaction = new byte[(int) file.length()];
+////                        inputStream.read(previousTransaction);
+////
+////                        int encryptionSize = previousTransaction[0];
+////                        int signatureSize = previousTransaction[1];
+////                        byte[] encryptionBytes = Arrays.copyOfRange(previousTransaction,2,2 + encryptionSize);
+////
+////                        byte[] signatureBytes = Arrays.copyOfRange(previousTransaction,2 + encryptionSize, 2 + encryptionSize + signatureSize);
+////
+////                        byte[] t = Transaction.getValue(encryptionBytes,signatureBytes,DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+////                        Transaction.printTransaction(t);
+////                    }
+////
+////                    Transaction transaction = Transaction.create(NAME,idm,3, passcode, DatatypeConverter.parseHexBinary("1122334455667788"), DatatypeConverter.parseHexBinary("000102030405060708090a0b0c0d0e0f"));
+////
+////                    byte[] transactionBytes = transaction.getBytes();
+////                    System.out.println("Size of the transaction is: " + transactionBytes.length);
+////                    file = new File("/home/pi/Desktop/cards/" + idm);
+////                    FileOutputStream outputStream = new FileOutputStream(file, true);
+////                    outputStream.write(transactionBytes);
+////                    outputStream.close();
+//
+//                    SendTransactionResponse response = TransactionService.sendTransaction(idm, 2.0, passcode, NAME, TransactionService.Type.DEBIT);
+//                    SendTransactionErrorResponse error = response.getSendTransactionErrorResponse();
+//                    SendTransactionSuccessResponse success = response.getSendTransactionSuccessResponse();
+//
+//                    if (error != null) {
+//                        System.out.println("There is an error!!");
+//                        System.out.println(error.message);
+//                    } else {
+//                        System.out.println("You have " + success.amount + " left in your account!!");
+//
+//                        File file = new File(idm);
+//
+//                        PrintWriter writer = new PrintWriter(new FileWriter(file));
+//                        writer.println(success.message.encryptedAmount + " " + success.message.signature);
+//                        writer.close();
+//                    }
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
 
 //        serial.addListener(event -> {
 //            try {
@@ -208,5 +265,31 @@ public class Main {
         Thread.sleep(1000);
 
         System.out.println("Transaction successfully finished");
+    }
+
+    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount) {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] key = new byte[8];
+        secureRandom.nextBytes(key);
+
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,"1234", key);
+
+        try {
+            byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);
+
+            MifareManager.writeTransaction(transactionBytes, mfReaderWriter, mfCard);
+
+        } catch (CardException | GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static PlainTransaction retrieveTransaction(MfCard mfCard, MfReaderWriter mfReaderWriter) throws CardException, GeneralSecurityException, FileNotFoundException {
+        byte[] retrievedTransactionBytes = MifareManager.readTransaction(mfReaderWriter,mfCard);
+
+        PlainTransaction retrievedTransaction = TransactionManager.verifyAndDecrypt(retrievedTransactionBytes, publickeyFile);
+
+        return retrievedTransaction;
+
     }
 }

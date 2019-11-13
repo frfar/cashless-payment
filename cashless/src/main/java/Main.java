@@ -65,6 +65,17 @@ public class Main {
                     try {
                         PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double amount = transaction.getAmount();
+                        String passcode = transaction.getPasscode();
+
+                        Keypad keypad = Keypad.getKeypadInstance();
+
+                        System.out.println("Enter your passcode:");
+                        String userPasscode = keypad.readPassword();
+
+                        if(!userPasscode.equals(passcode)) {
+                            System.out.println("Invalid passcode detected!!");
+                        }
+
                         System.out.println("The amount in card is: " + amount);
 
                         if(amount < 5) {
@@ -73,6 +84,8 @@ public class Main {
                         }
 
                         double newAmount = amount - 5;
+
+                        System.out.println("Making a purchase of $5 " + newAmount);
 
                         writeTrasaction(mfCard, mfReaderWriter, newAmount);
 

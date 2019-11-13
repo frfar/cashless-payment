@@ -86,7 +86,7 @@ public class Main {
 
                         double newAmount = amount - 5;
 
-                        System.out.println("Making a purchase of $5 " + newAmount);
+                        System.out.println("Making a purchase of $5");
 
                         writeTrasaction(mfCard, mfReaderWriter, newAmount);
 

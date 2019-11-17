@@ -42,6 +42,7 @@ console.log(chalk.yellow('keyBase64 is : ' + keyBase64));
 console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
 
 // find all incomplete transactions sorted by timestamps
+// will create another to find all incomplete transactions for a given card
 app.get('/offline_transaction/incomplete', (req,res) => {
     offline_transaction.findAll({ 
         where: { complete: '0'},

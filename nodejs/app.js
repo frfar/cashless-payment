@@ -11,6 +11,7 @@ const cards = sequelize.import('./models/cards');
 const transactions = sequelize.import('./models/transactions');
 const vending_machines = sequelize.import('./models/vending_machines');
 const transaction_types = sequelize.import('./models/transaction_types');
+const offline_transaction = sequelize.import('./models/offline_transactions');
 
 //32 bytes key for aes
 var key_256 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -39,6 +40,62 @@ const iv = crypto.randomBytes(16).toString('base64');
 
 console.log(chalk.yellow('keyBase64 is : ' + keyBase64));
 console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
+
+// find all incomplete transactions sorted by timestamps
+app.get('/offline_transaction/incomplete', (req,res) => {
+    offline_transaction.findAll({ 
+        where: { complete: '0'},
+        order: [['timestamp', 'ASC']]
+    }).then((transactions) => {
+        if (transactions){
+            if (transactions.length === 0){
+                res.status(200).json({
+                    'message': 'No incomplete transaction found'
+                });
+            }else{
+                res.status(200).json({
+                    'message': transactions
+                });
+            }
+        }else{
+            res.status(404).json({
+                'message': 'Internal sever error'
+            });
+        }
+    });
+});
+
+// find all completed transactions for a card
+app.get('/offline_transaction/complete', (req,res) => {
+    const card_id = req.query.card_id;
+    offline_transaction.findAll({
+        where: {
+            card_id : card_id,
+            complete : '1'
+        },
+        order : [
+            ['timestamp', 'ASC']
+        ]
+    }).then((transactions) => {
+        if (transactions){
+            if (transactions.length === 0){
+                res.status(200).json({
+                    'message': 'No complete transaction found for card'
+                });
+            }else{
+                res.status(200).json({
+                    'message': transactions
+                });
+            }
+        }else{
+            res.status(404).json({
+                'message': 'Internal sever error'
+            });
+        }
+    });
+});
+
+
 
 // cardUniqueId, amount, vendingMachineId, type
 //search by uniqueId, if it's credit, add, limit 100.

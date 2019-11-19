@@ -2,15 +2,18 @@ import mifare.*;
 import org.nfctools.mf.MfCardListener;
 import org.nfctools.mf.MfReaderWriter;
 import org.nfctools.mf.card.MfCard;
+import security.SHA256;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
 
 import javax.smartcardio.CardException;
+import java.io.Console;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class MiFareCardTest {
@@ -39,12 +42,23 @@ public class MiFareCardTest {
                     try {
                         PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double amount = transaction.getAmount();
-                        String passcode = transaction.getPasscode();
+                        byte[] passcodeHash = transaction.getPasscode();
+                        byte[] passcodeSecret = transaction.getHashkey();
+
+                        Scanner scanner = new Scanner(System.in);
+                        String userPasscode = scanner.next();
+
+                        byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);
+
+                        System.out.println(Arrays.toString(userPasscodeHash));
+                        if(!Arrays.equals(userPasscodeHash,passcodeHash)) {
+                            System.out.println("Passcode is not valid!");
+                            return;
+                        }
+
                         System.out.println("The amount in card is: " + amount);
 
                         System.out.println("Enter the amount you want to add");
-                        Scanner scanner = new Scanner(System.in);
-                        System.out.println(System.in);
                         double addedAmount = scanner.nextDouble();
 
                         if(amount + addedAmount > 100) {
@@ -54,7 +68,7 @@ public class MiFareCardTest {
 
                         double newAmount = amount + addedAmount;
 
-                        writeTrasaction(mfCard, mfReaderWriter, newAmount, passcode);
+                        writeTrasaction(mfCard, mfReaderWriter, newAmount, userPasscode);
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
@@ -85,7 +99,8 @@ public class MiFareCardTest {
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcode, key);
+        byte[] passcodeHash = SHA256.getHMAC(passcode, key);
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcodeHash, key, System.currentTimeMillis());
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

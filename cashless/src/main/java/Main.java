@@ -1,7 +1,4 @@
 import com.pi4j.io.serial.Serial;
-import felica.CardReader;
-import felica.CardReaderCallback;
-import felica.FelicaManager;
 import keypad.Keypad;
 import mifare.Acr122Device;
 import mifare.MifareManager;
@@ -9,16 +6,15 @@ import org.nfctools.mf.MfCardListener;
 import org.nfctools.mf.MfReaderWriter;
 import org.nfctools.mf.card.MfCard;
 import security.AES;
+import security.SHA256;
 import security.utils.Utils;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
-import web.SendTransactionErrorResponse;
-import web.SendTransactionResponse;
-import web.SendTransactionSuccessResponse;
-import web.TransactionService;
 
 import javax.smartcardio.CardException;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -65,15 +61,18 @@ public class Main {
                     try {
                         PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double amount = transaction.getAmount();
-                        String passcode = transaction.getPasscode();
+                        byte[] passcodeHash = transaction.getPasscode();
+                        byte[] passcodeSecret = transaction.getHashkey();
 
                         Keypad keypad = Keypad.getKeypadInstance();
 
                         System.out.println("Enter your passcode:");
                         String userPasscode = keypad.readPassword();
 
-                        if(!userPasscode.equals(passcode)) {
-                            System.out.println("Invalid passcode detected!!");
+                        byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);
+
+                        if(!Arrays.equals(userPasscodeHash,passcodeHash)) {
+                            System.out.println("Passcode is not valid!");
                             return;
                         }
 
@@ -88,7 +87,7 @@ public class Main {
 
                         System.out.println("Making a purchase of $5");
 
-                        writeTrasaction(mfCard, mfReaderWriter, newAmount, passcode);
+                        writeTrasaction(mfCard, mfReaderWriter, newAmount, userPasscode);
 
                         System.out.println("The remaining amount in card is: " + newAmount);
 
@@ -286,7 +285,8 @@ public class Main {
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcode, key);
+        byte[] passcodeHash = SHA256.getHMAC(passcode, key);
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcodeHash, key, System.currentTimeMillis());
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

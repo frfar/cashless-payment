@@ -51,7 +51,6 @@ public class TransactionManager {
 
         int encryptionSize = transactionBytes[0];
         int signatureSize = transactionBytes[1];
-
         byte[] encryptionBytes = Arrays.copyOfRange(transactionBytes,2,2 + encryptionSize);
         byte[] signatureBytes = Arrays.copyOfRange(transactionBytes,2 + encryptionSize, 2 + encryptionSize + signatureSize);
         byte[] iv = Arrays.copyOfRange(transactionBytes, 2 + encryptionSize + signatureSize, 2 + encryptionSize + signatureSize + 16);

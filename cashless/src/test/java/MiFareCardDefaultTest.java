@@ -3,6 +3,7 @@ import mifare.MifareManager;
 import org.nfctools.mf.MfCardListener;
 import org.nfctools.mf.MfReaderWriter;
 import org.nfctools.mf.card.MfCard;
+import security.SHA256;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
 
@@ -12,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -43,13 +45,13 @@ public class MiFareCardDefaultTest {
                         int random = (int) (Math.random() * 8999 + 1000);
 
                         System.out.println("Your passcode is: " + random);
-                        writeTrasaction(mfCard, mfReaderWriter, 100, Integer.toString(random));
+                        PlainTransaction transaction = writeTrasaction(mfCard, mfReaderWriter, 0, Integer.toString(random));
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
 
-                        if(100 == retrievedAmount) {
-                            System.out.println("The final amount in card is: " + 100);
+                        if(0 == retrievedAmount) {
+                            System.out.println("The final amount in card is: " + 0);
                         } else {
                             System.out.println("Transaction failed!!");
                         }
@@ -69,12 +71,13 @@ public class MiFareCardDefaultTest {
         }
     }
 
-    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount, String passcode) {
+    private static PlainTransaction writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount, String passcode) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcode, key);
+        byte[] passcodeHash = SHA256.getHMAC(passcode, key);
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcodeHash, key, System.currentTimeMillis());
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);
@@ -84,6 +87,8 @@ public class MiFareCardDefaultTest {
         } catch (CardException | GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
+
+        return transaction;
     }
 
     private static PlainTransaction retrieveTransaction(MfCard mfCard, MfReaderWriter mfReaderWriter) throws CardException, GeneralSecurityException, FileNotFoundException {

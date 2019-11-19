@@ -44,7 +44,7 @@ public class TransactionBlockTest {
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",3.5,"1234", key);
+        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",3.5,SHA256.getHMAC("1234", key), key, System.currentTimeMillis());
 
         byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);
 

@@ -113,6 +113,7 @@ app.post('/offline_transaction/incomplete', (req,res) => {
     const prev_vm_id = req.query.prev_vm_id;
     const prev_remaining_amount = req.query.prev_remaining_amount;
     const prev_timestamp = req.query.prev_timestamp;
+    // caution: amount when query is in format: AB.CD
 
     offline_transaction.findOne({
         where: { 
@@ -123,7 +124,9 @@ app.post('/offline_transaction/incomplete', (req,res) => {
         }
     }).then((prev_tran) => {
         if (prev_tran){
+            console.log('prev found');
             if(prev_tran.complete == '1'){
+                console.log('prev is complete');
                 // if prev_transaction is complete, mark this one complete and add to db
                 // loop and find 
                 addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 1 , 1).then(transaction => {
@@ -134,18 +137,10 @@ app.post('/offline_transaction/incomplete', (req,res) => {
                         },
                         order: [['timestamp', 'ASC']]
                     }).then(async(transactions) => {
-                        if (transactions){
-                            // if there is sth
-                            //console.log(transactions.length);
+                        if (transactions){ // if transactions.length == 0, means no previous incompete for the input transaction, it still goes here
+                            console.log(transactions.length);
                             let cur = {vm_id, remaining_amount, timestamp};
-                            //console.log(cur.remaining_amount);
                             for (let i = 0; i < transactions.length; i++) {
-                                console.log(cur.vm_id);
-                                console.log(cur.remaining_amount);
-                                console.log(cur.timestamp);
-                                console.log(transactions[i].prev_vm_id);
-                                console.log(transactions[i].prev_remaining_amount);
-                                console.log(transactions[i].prev_timestamp);
                                 if (transactions[i].prev_vm_id == cur.vm_id && transactions[i].prev_remaining_amount == cur.remaining_amount && transactions[i].prev_timestamp == cur.timestamp){
                                     console.log('here');
                                     await offline_transaction.findOne({
@@ -158,12 +153,10 @@ app.post('/offline_transaction/incomplete', (req,res) => {
                                         }).then(updated_transaction => {
                                             console.log('transaction ' + updated_transaction.id + ' updated')
                                         })
-                                    });
-                                    
+                                    }); 
                                     cur.vm_id = transactions[i].vm_id;
                                     cur.remaining_amount = transactions[i].remaining_amount;
                                     cur.timestamp = transactions[i].timestamp;
-                                   // console.log(cur.remaining_amount);
                                 }else
                                     break;
                             }
@@ -172,11 +165,8 @@ app.post('/offline_transaction/incomplete', (req,res) => {
                             });
 
                         }else{
-                            // no incomplete transaction for that card found, so just add transaction to db with 
-                            // complete state
-                            addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 1 , 0);
                             res.status(200).json({
-                                'message': 'Transaction incomplete, added to db'
+                                'message': 'Error'
                             });
                         }
                     });
@@ -185,13 +175,13 @@ app.post('/offline_transaction/incomplete', (req,res) => {
             }else{ // else incomplete, so add the current one to db with incomplete state
                 addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp,1 , 0);
             res.status(200).json({
-                'message': 'Transaction incomplete, added to db'
+                'message': 'Previous transaction incomplete => Transaction incomplete, added to db'
             });
             }
         }else{ // not found prev tran, so add so add the current one to db with incomplete state
             addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 1, 0);
             res.status(200).json({
-                'message': 'Transaction incomplete, added to db'
+                'message': 'No previous transaction found => Transaction incomplete, added to db'
             });
         }
     });

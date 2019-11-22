@@ -7,6 +7,7 @@ const app = express();
 let connection = require('./SequelizeConnection');
 let sequelize = connection.sequelize();
 
+const users = sequelize.import('./models/users');
 const cards = sequelize.import('./models/cards');
 const transactions = sequelize.import('./models/transactions');
 const vending_machines = sequelize.import('./models/vending_machines');
@@ -24,6 +25,19 @@ let key = new Uint8Array(key_256);
 const privateKey = eccrypto.generatePrivate();
 const publicKey = eccrypto.getPublic(privateKey);
 
+let port = require('./configs/port.js.local')
+app.set('port', port.number)
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,OPTIONS");
+    if (Object.keys(req.query).length === 0 && req.query.constructor === Object) {
+        req.query = req.body;
+    }
+    next()
+})
+
 app.get('/', (req, res) => {
     res.send('Welcome to cashless');
 })
@@ -40,6 +54,53 @@ const iv = crypto.randomBytes(16).toString('base64');
 
 console.log(chalk.yellow('keyBase64 is : ' + keyBase64));
 console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
+
+// fetch user by email
+app.get('/users', (req,res) => {
+    users.findOne({
+        where: {email: req.query.email}
+        })
+        .then(user_info => {
+        if (user_info){
+            if (user_info.length === 0){
+                res.status(200).json({
+                    'message': 'No user found'
+                });
+            }else{
+                res.status(200).json({
+                    'message': user_info
+                });
+            }
+        }else{
+            res.status(404).json({
+                'message': 'Internal sever error'
+            });
+        }
+    })
+})
+
+// fetch all cards by user id
+app.get('/cards', (req,res) => {
+    cards.findAll({
+        where: {user_id: req.query.user_id}
+    }).then(user_cards => {
+        if (user_cards){
+            if (user_cards.length === 0){
+                res.status(200).json({
+                    'message': 'No card found'
+                });
+            }else{
+                res.status(200).json({
+                    'message': user_cards
+                });
+            }
+        }else{
+            res.status(404).json({
+                'message': 'Internal sever error'
+            });
+        }
+    })
+})
 
 // find all incomplete transactions sorted by timestamps
 // will create another to find all incomplete transactions for a given card
@@ -92,7 +153,6 @@ app.post('/offline_transaction/incomplete', (req,res) => {
                                             id : transactions[i].id
                                         }
                                     }).then(t => {
-                                        console.log('sth');
                                         t.update({
                                             complete: '1'
                                         }).then(updated_transaction => {
@@ -269,9 +329,11 @@ app.get('/offline_transaction/complete', (req,res) => {
             card_id : card_id,
             complete : '1'
         },
-        order : [
-            ['timestamp', 'ASC']
-        ]
+        order: [
+            ['timestamp', 'DESC']
+        ],
+        offset: parseInt(req.query.offset) || 0,
+        limit: parseInt(req.query.limit) || null
     }).then((transactions) => {
         if (transactions){
             if (transactions.length === 0){
@@ -461,10 +523,10 @@ const decrypt = (messagebase64, keyBase64, ivBase64) => {
     return decrypted;
 }
 
-app.listen(3000, (err) => {
+app.listen(app.get('port'), (err) => {
     if (err){
         console.log(err);
         throw err;
     }
-    console.log('Lisening on port 3000');
+    console.log('Lisening on port ' + app.get('port'));
 })

@@ -44,10 +44,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: false
     },
-    prev_transaction: {
-      type: DataTypes.INTEGER(20),
-      allowNull: false
-    },
     complete: {
       type: DataTypes.INTEGER(4),
       allowNull: false

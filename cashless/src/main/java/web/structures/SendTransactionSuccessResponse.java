@@ -1,9 +1,8 @@
-package web;
+package web.structures;
 
-public class SendTransactionErrorResponse {
-
+public class SendTransactionSuccessResponse {
     public String status;
-    public String message;
+    public TransactionMessage message;
     public String amount;
 
     @Override

@@ -51,7 +51,7 @@ public class TransactionService {
         }
     }
 
-    public static void sendOfflineTransaction(OfflineTransaction offlineTransaction) {
+    public static String sendOfflineTransaction(OfflineTransaction offlineTransaction) {
         Gson gson = new GsonBuilder()
                 .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                 .create();
@@ -69,5 +69,6 @@ public class TransactionService {
 
         System.out.println(res);
 
+        return res;
     }
 }

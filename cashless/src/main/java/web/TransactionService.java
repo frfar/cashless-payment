@@ -66,7 +66,7 @@ public class TransactionService {
 
         String res = WebRequest.sendPost("http://e4421a4a.ngrok.io/offline_transaction/incomplete", query);
 
-        System.out.println(res);
+//        System.out.println(res);
 
         return res;
     }

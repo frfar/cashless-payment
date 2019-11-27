@@ -2,7 +2,6 @@ package web;
 
 import web.structures.OfflineTransaction;
 
-import java.io.IOException;
 import java.util.PriorityQueue;
 
 public class TransactionUploadThread implements Runnable {
@@ -10,6 +9,8 @@ public class TransactionUploadThread implements Runnable {
     private static TransactionUploadThread transactionUploadThread;
     private static Thread thread;
     private static PriorityQueue<OfflineTransaction> offlineTransactions = new PriorityQueue<>();
+
+    private boolean isConnected = true;
 
     private TransactionUploadThread() {
     }
@@ -37,6 +38,17 @@ public class TransactionUploadThread implements Runnable {
 
                 if (ret != null) {
                     offlineTransactions.poll();
+
+                    if(!isConnected) {
+                        System.out.println("Internet is connected now!");
+                    }
+                    System.out.println(ret);
+                    isConnected = true;
+                } else {
+                    if(isConnected) {
+                        System.out.println("Internet is down!");
+                        isConnected = false;
+                    }
                 }
             }
 

@@ -93,6 +93,11 @@ public class Keypad {
     
     /** This is the method that I added. reads all lines in the buffer */
     public void flushBuffer() throws IOException {
-        br.lines();
+        if(!br.ready()) {
+            return;
+        }
+    	String line = br.readLine();
+    	while (line != null)
+    		line = br.readLine();
     }
 }

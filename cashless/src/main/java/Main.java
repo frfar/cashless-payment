@@ -70,9 +70,9 @@ public class Main {
                         byte[] passcodeSecret = transaction.getHashkey();
 
                         Keypad keypad = Keypad.getKeypadInstance();
-                        keypad.flushBuffer();
                         System.out.println("Enter your passcode:");
                         String userPasscode = keypad.readPassword();
+                        keypad.close();
 
                         byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);
 

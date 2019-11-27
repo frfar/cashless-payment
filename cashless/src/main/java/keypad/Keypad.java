@@ -36,9 +36,10 @@ public class Keypad {
 
         if(keypad == null || p == null || br == null) {
             keypad = new Keypad();
-            p = pb.start();
-            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
         }
+        p = pb.start();
+        br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
         return keypad;
     }
 
@@ -91,7 +92,7 @@ public class Keypad {
         return line.toString();
     }
     
-    /** This is the method that I added. reads all lines in the buffer */
+    /** This is the method reads all lines in the buffer */
     public void flushBuffer() throws IOException {
         if(!br.ready()) {
             return;
@@ -99,5 +100,10 @@ public class Keypad {
     	String line = br.readLine();
     	while (line != null)
     		line = br.readLine();
+    }
+
+    public void close() throws IOException {
+        br.close();
+        p.destroy();
     }
 }

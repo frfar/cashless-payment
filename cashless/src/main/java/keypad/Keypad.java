@@ -52,6 +52,7 @@ public class Keypad {
                 lineWithKeyStroke = line;
             }
         }
+        System.out.println("Key pressed: " + Converter.parse(lineWithKeyStroke));
         return Converter.parse(lineWithKeyStroke);
     }
 

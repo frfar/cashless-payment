@@ -97,7 +97,7 @@ public class PlainTransaction {
         byte[] cardIdBytes = DatatypeConverter.parseHexBinary(cardId);
         byte amountDollars = (byte) Math.floor(amount);
         byte amountCents =  (byte) ((amount - amountDollars) * 100);
-        ByteBuffer buffer = ByteBuffer.allocate(vmIdBytes.length + cardIdBytes.length + 2 + passcode.length + hashkey.length + 8);
+        ByteBuffer buffer = ByteBuffer.allocate(vmIdBytes.length + cardIdBytes.length + 2 + passcode.length + hashkey.length + 8 + 2);
         buffer.put(vmIdBytes).put(cardIdBytes).put(amountDollars).put(amountCents).put(passcode).put(hashkey).putLong(timestamp).putShort(sequenceNumber);
 
         return buffer.array();

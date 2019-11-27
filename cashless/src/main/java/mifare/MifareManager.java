@@ -51,7 +51,7 @@ public class MifareManager {
 
     public static byte[] readTransaction(MfReaderWriter reader, MfCard card) throws CardException {
 
-        int noOfBlocks = 10;
+        int noOfBlocks = 11;
         ByteBuffer buffer = ByteBuffer.allocate(16 * noOfBlocks);
 
         for(int i = 0; i < noOfBlocks; i++) {

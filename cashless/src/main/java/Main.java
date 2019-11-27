@@ -123,10 +123,11 @@ public class Main {
 
                 }
             });
-            System.out.println("Press ENTER to exit");
-            System.in.read();
-
-            acr122.close();
+//            System.out.println("Press ENTER to exit");
+//            System.in.read();
+//
+//            acr122.close();
+            while(true);
         } catch (IOException e) {
             e.printStackTrace();
         }

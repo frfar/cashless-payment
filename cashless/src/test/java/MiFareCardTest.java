@@ -49,6 +49,7 @@ public class MiFareCardTest {
                         byte[] passcodeHash = transaction.getPasscode();
                         byte[] passcodeSecret = transaction.getHashkey();
 
+                        System.out.println("Enter Passcode:");
                         Scanner scanner = new Scanner(System.in);
                         String userPasscode = scanner.next();
 

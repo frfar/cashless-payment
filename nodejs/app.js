@@ -117,6 +117,10 @@ const PREV_INCOMPLETE = 2;
 const NO_PREV = 3;
 const ERROR = 4;
 
+const TRANS_COMPLETE = 1;
+const TRANS_INCOMPLETE = 0;
+
+const DEFAULT_SEQUENCE = 0;
 
 app.post('/offline_transaction/incomplete', async(req,res) => {
     console.log(req.query);
@@ -127,13 +131,14 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
     const prev_vm_id = req.query.prev_vm_id;
     const prev_remaining_amount = req.query.prev_remaining_amount;
     const prev_timestamp = req.query.prev_timestamp;
+    const transaction_sequence = req.query.transaction_sequence;
     // caution: amount when query is in format: AB.CD
 
     await offline_transaction.findAll({
         where : {card_id : card_id}
     }).then((result) => {
         if (result.length === 0){
-            addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 1);
+            addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_COMPLETE, DEFAULT_SEQUENCE);
             res.status(200).json({
                 'message': 'Initialize first transaction',
                 'code' : INIT_FIRST_TRANS
@@ -149,15 +154,15 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
             }).then((prev_tran) => {
                 if (prev_tran){
                     console.log('prev found');
-                    if(prev_tran.complete == '1'){
+                    if(prev_tran.complete == TRANS_COMPLETE){
                         console.log('prev is complete');
                         // if prev_transaction is complete, mark this one complete and add to db
                         // loop and find 
-                        addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 1).then(transaction => {
+                        addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_COMPLETE, transaction_sequence).then(transaction => {
                             offline_transaction.findAll({
                                 where: { 
                                     card_id: card_id,
-                                    complete: 0
+                                    complete: TRANS_INCOMPLETE
                                 },
                                 order: [['timestamp', 'ASC']]
                             }).then(async(transactions) => {
@@ -173,7 +178,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                                                 }
                                             }).then(t => {
                                                 t.update({
-                                                    complete: 1
+                                                    complete: TRANS_COMPLETE
                                                 }).then(updated_transaction => {
                                                     console.log('transaction ' + updated_transaction.id + ' updated')
                                                 })
@@ -199,14 +204,14 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
         
                         })
                     }else{ // else incomplete, so add the current one to db with incomplete state
-                        addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 0);
+                        addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_INCOMPLETE, transaction_sequence);
                     res.status(200).json({
                         'message': 'Previous PR incomplete => Transaction incomplete, added to db',
                         'code' : PREV_INCOMPLETE
                     });
                     }
                 }else{ // not found prev tran, so add so add the current one to db with incomplete state
-                    addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, 0);
+                    addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_INCOMPLETE, transaction_sequence);
                     res.status(200).json({
                         'message': 'No previous transaction found => Transaction incomplete, added to db',
                         'code' : NO_PREV
@@ -219,7 +224,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
     
 });
 
-const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp,complete) => {
+const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp,complete, transaction_sequence) => {
     return new Promise((resolve, reject) => {
         offline_transaction.create({
             card_id : card_id,
@@ -229,7 +234,8 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
             prev_vm_id : prev_vm_id,
             prev_remaining_amount : prev_remaining_amount,
             prev_timestamp : prev_timestamp,
-            complete : complete
+            complete : complete,
+            transaction_sequence : transaction_sequence
         }).then((transaction)=>{
             if(transaction) 
                 resolve(transaction);

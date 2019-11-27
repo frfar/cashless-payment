@@ -47,6 +47,10 @@ module.exports = function(sequelize, DataTypes) {
     complete: {
       type: DataTypes.INTEGER(4),
       allowNull: false
+    },
+    transaction_sequence: {
+      type: DataTypes.INTEGER(16),
+      allowNull: false
     }
   }, {
     tableName: 'offline_transactions'

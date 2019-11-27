@@ -248,8 +248,40 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
 }
 
 
+// find all pending transactions for a card
+app.get('/offline_transaction/pending', (req,res) => {
+    const card_id = req.query.card_id;
+    offline_transaction.findAll({
+        where: {
+            card_id : card_id,
+            complete : '0'
+        },
+        order: [
+            ['timestamp', 'DESC']
+        ],
+        offset: parseInt(req.query.offset) || 0,
+        limit: parseInt(req.query.limit) || null
+    }).then((transactions) => {
+        if (transactions){
+            if (transactions.length === 0){
+                res.status(200).json({
+                    'message': 'No complete transaction found for card'
+                });
+            }else{
+                res.status(200).json({
+                    'message': transactions
+                });
+            }
+        }else{
+            res.status(404).json({
+                'message': 'Internal sever error'
+            });
+        }
+    });
+});
 
-// find all completed transactions for a card
+
+// find all complete transactions for a card
 app.get('/offline_transaction/complete', (req,res) => {
     const card_id = req.query.card_id;
     offline_transaction.findAll({

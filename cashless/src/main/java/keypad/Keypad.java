@@ -39,7 +39,7 @@ public class Keypad {
         }
         p = pb.start();
         br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
+        keypad.flushBuffer();
         return keypad;
     }
 

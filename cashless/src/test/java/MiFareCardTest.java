@@ -100,8 +100,9 @@ public class MiFareCardTest {
                             System.out.println("Transaction failed!!");
                         }
 
-                    } catch (CardException | GeneralSecurityException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
+                        System.out.println("Failed! Please re-swipe the card!!");
                     }
 
                 }

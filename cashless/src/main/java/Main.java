@@ -118,8 +118,9 @@ public class Main {
                             System.out.println("Transaction failed!!");
                         }
 
-                    } catch (CardException | GeneralSecurityException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
+                        System.out.println("Failed! Please re-swipe the card!!");
                     }
 
                 }
@@ -129,7 +130,7 @@ public class Main {
 //
 //            acr122.close();
             while(true);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

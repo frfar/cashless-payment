@@ -50,7 +50,6 @@ public class Keypad {
 
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
             String line = br.readLine();
-            System.out.println("line read: " + line);
 
             if(i == lineNumberWithKeyStroke1) {
                 lineWithKeyStroke1 = line;
@@ -66,8 +65,6 @@ public class Keypad {
         if(keyPressed.equals("")) {
             keyPressed = Converter.parse(lineWithKeyStroke2);
         }
-
-        System.out.println("Key pressed: " + keyPressed);
 
         return keyPressed;
     }

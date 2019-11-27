@@ -72,6 +72,7 @@ public class Main {
                         Keypad keypad = Keypad.getKeypadInstance();
                         System.out.println("Enter your passcode:");
                         String userPasscode = keypad.readPassword();
+                        System.out.println("You have entered " + userPasscode);
                         keypad.close();
 
                         byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);

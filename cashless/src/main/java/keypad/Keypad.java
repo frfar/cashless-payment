@@ -47,6 +47,7 @@ public class Keypad {
         String lineWithKeyStroke = "";
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
             String line = br.readLine();
+            System.out.println("line read: " + line);
 
             if(i == lineNumberWithKeyStroke) {
                 lineWithKeyStroke = line;

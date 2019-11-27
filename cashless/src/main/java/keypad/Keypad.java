@@ -18,7 +18,8 @@ public class Keypad {
 
     private static String[] command;
     private static final int numberOfLinePerKeyStroke = 6;
-    private static final int lineNumberWithKeyStroke = 1;
+    private static final int lineNumberWithKeyStroke1 = 1;
+    private static final int lineNumberWithKeyStroke2 = 4;
     private static final int numberOfKeyStrokesInPassword = 4;
 
     private Keypad() {
@@ -44,17 +45,31 @@ public class Keypad {
     }
 
     public String readKeyPressed() throws IOException {
-        String lineWithKeyStroke = "";
+        String lineWithKeyStroke1 = "";
+        String lineWithKeyStroke2 = "";
+
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
             String line = br.readLine();
             System.out.println("line read: " + line);
 
-            if(i == lineNumberWithKeyStroke) {
-                lineWithKeyStroke = line;
+            if(i == lineNumberWithKeyStroke1) {
+                lineWithKeyStroke1 = line;
+            }
+
+            if(i == lineNumberWithKeyStroke2) {
+                lineWithKeyStroke2 = line;
             }
         }
-        System.out.println("Key pressed: " + Converter.parse(lineWithKeyStroke));
-        return Converter.parse(lineWithKeyStroke);
+
+        String keyPressed = Converter.parse(lineWithKeyStroke1);
+
+        if(keyPressed.equals("")) {
+            keyPressed = Converter.parse(lineWithKeyStroke2);
+        }
+
+        System.out.println("Key pressed: " + keyPressed);
+
+        return keyPressed;
     }
 
     public String readPassword() throws IOException {
@@ -96,6 +111,7 @@ public class Keypad {
     
     /** This is the method reads all lines in the buffer */
     public void flushBuffer() throws IOException {
+
         if(!br.ready()) {
             return;
         }

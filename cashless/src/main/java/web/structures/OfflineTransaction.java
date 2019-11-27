@@ -8,16 +8,18 @@ public class OfflineTransaction implements Comparable <OfflineTransaction> {
     public long timestamp;
     public String prevVmId;
     public double prevRemainingAmount;
-    public long prev_timestamp;
+    public long prevTimestamp;
+    public short transactionSequence;
 
-    public OfflineTransaction(String cardId, String vmId, double remainingAmount, long timestamp, String prevVmId, double prevRemainingAmount, long prev_timestamp) {
+    public OfflineTransaction(String cardId, String vmId, double remainingAmount, long timestamp, String prevVmId, double prevRemainingAmount, long prevTimestamp, short transactionSequence) {
         this.cardId = cardId;
         this.vmId = vmId;
         this.remainingAmount = remainingAmount;
         this.timestamp = timestamp;
         this.prevVmId = prevVmId;
         this.prevRemainingAmount = prevRemainingAmount;
-        this.prev_timestamp = prev_timestamp;
+        this.prevTimestamp = prevTimestamp;
+        this.transactionSequence = transactionSequence;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class OfflineTransaction implements Comparable <OfflineTransaction> {
                 ", timestamp=" + timestamp +
                 ", prevVmId='" + prevVmId + '\'' +
                 ", prevRemainingAmount=" + prevRemainingAmount +
-                ", prev_timestamp=" + prev_timestamp +
+                ", prevTimestamp=" + prevTimestamp +
                 '}';
     }
 }

@@ -46,6 +46,7 @@ public class MiFareCardTest {
                     try {
                         PlainTransaction transaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double amount = transaction.getAmount();
+                        short sequenceNumber = transaction.getSequenceNumber();
                         byte[] passcodeHash = transaction.getPasscode();
                         byte[] passcodeSecret = transaction.getHashkey();
 
@@ -74,7 +75,7 @@ public class MiFareCardTest {
                         double newAmount = amount + addedAmount;
 
                         long timestamp =  System.currentTimeMillis();
-                        writeTrasaction(mfCard, mfReaderWriter, "12345679","1234567890ABCDEF", newAmount, userPasscode, timestamp);
+                        writeTrasaction(mfCard, mfReaderWriter, "12345679","1234567890ABCDEF", newAmount, userPasscode, timestamp, (short) (sequenceNumber + 1));
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
@@ -93,7 +94,7 @@ public class MiFareCardTest {
                             }
 
 
-                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","2", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp());
+                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","2", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp(), retrievedTransaction.getSequenceNumber());
                             transactionUploadThread.addOfflineTransaction(offlineTransaction);
                         } else {
                             System.out.println("Transaction failed!!");
@@ -114,13 +115,13 @@ public class MiFareCardTest {
         }
     }
 
-    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, String passcode, long timestamp) {
+    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, String passcode, long timestamp, short sequenceNumber) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
         byte[] passcodeHash = SHA256.getHMAC(passcode, key);
-        PlainTransaction transaction = new PlainTransaction(vmId, cardId,amount,passcodeHash, key, timestamp);
+        PlainTransaction transaction = new PlainTransaction(vmId, cardId,amount,passcodeHash, key, timestamp, sequenceNumber);
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

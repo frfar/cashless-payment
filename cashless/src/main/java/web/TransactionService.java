@@ -62,7 +62,8 @@ public class TransactionService {
         query.addParameter("timestamp", Long.toString(offlineTransaction.timestamp));
         query.addParameter("prev_vm_id", offlineTransaction.prevVmId);
         query.addParameter("prev_remaining_amount", String.format("%.02f", offlineTransaction.prevRemainingAmount));
-        query.addParameter("prev_timestamp", Long.toString(offlineTransaction.prev_timestamp));
+        query.addParameter("prev_timestamp", Long.toString(offlineTransaction.prevTimestamp));
+        query.addParameter("transaction_sequence", Short.toString(offlineTransaction.transactionSequence));
 
         String res = WebRequest.sendPost("http://e4421a4a.ngrok.io/offline_transaction/incomplete", query);
 

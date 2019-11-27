@@ -6,6 +6,8 @@ import org.nfctools.mf.card.MfCard;
 import security.SHA256;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
+import web.TransactionUploadThread;
+import web.structures.OfflineTransaction;
 
 import javax.smartcardio.CardException;
 import java.io.File;
@@ -27,6 +29,8 @@ public class MiFareCardDefaultTest {
         System.out.println("Testing the MiFare Card Utility!!");
         
         Acr122Device acr122;
+        TransactionUploadThread transactionUploadThread = TransactionUploadThread.getInstance();
+
         try {
             acr122 = new Acr122Device();
         } catch (RuntimeException re) {
@@ -45,13 +49,17 @@ public class MiFareCardDefaultTest {
                         int random = (int) (Math.random() * 8999 + 1000);
 
                         System.out.println("Your passcode is: " + random);
-                        PlainTransaction transaction = writeTrasaction(mfCard, mfReaderWriter, 0, Integer.toString(random));
+                        PlainTransaction transaction = writeTrasaction(mfCard, mfReaderWriter,"12345678","1234567890ABCDEF", 0, Integer.toString(random));
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
 
                         if(0 == retrievedAmount) {
                             System.out.println("The final amount in card is: " + 0);
+
+                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","1", retrievedAmount, transaction.getTimestamp(),"1",0, transaction.getTimestamp());
+
+                            transactionUploadThread.addOfflineTransaction(offlineTransaction);
                         } else {
                             System.out.println("Transaction failed!!");
                         }
@@ -64,6 +72,7 @@ public class MiFareCardDefaultTest {
             });
             //System.out.println("Press ENTER to exit");
             //System.in.read();
+
             while(true);
             //acr122.close();
         } catch (IOException e) {
@@ -71,7 +80,7 @@ public class MiFareCardDefaultTest {
         }
     }
 
-    private static PlainTransaction writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount, String passcode) {
+    private static PlainTransaction writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, String passcode) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);

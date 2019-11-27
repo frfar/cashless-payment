@@ -5,6 +5,8 @@ import org.nfctools.mf.card.MfCard;
 import security.SHA256;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
+import web.TransactionUploadThread;
+import web.structures.OfflineTransaction;
 
 import javax.smartcardio.CardException;
 import java.io.Console;
@@ -26,6 +28,8 @@ public class MiFareCardTest {
         System.out.println("Testing the MiFare Card Utility!!");
         
         Acr122Device acr122;
+        TransactionUploadThread transactionUploadThread = TransactionUploadThread.getInstance();
+
         try {
             acr122 = new Acr122Device();
         } catch (RuntimeException re) {
@@ -68,13 +72,28 @@ public class MiFareCardTest {
 
                         double newAmount = amount + addedAmount;
 
-                        writeTrasaction(mfCard, mfReaderWriter, newAmount, userPasscode);
+                        long timestamp =  System.currentTimeMillis();
+                        writeTrasaction(mfCard, mfReaderWriter, "12345679","1234567890ABCDEF", newAmount, userPasscode, timestamp);
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
 
                         if(newAmount == retrievedAmount) {
                             System.out.println("The final amount in card is: " + newAmount);
+
+                            String prevVmId = transaction.getVmId();
+                            String prevVmIntId = "";
+                            if(prevVmId.equals("12345678")) {
+                                prevVmIntId = "1";
+                            } else if(prevVmId.equals("12345679")) {
+                                prevVmIntId = "2";
+                            } else {
+                                prevVmIntId = "3";
+                            }
+
+
+                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","2", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp());
+                            transactionUploadThread.addOfflineTransaction(offlineTransaction);
                         } else {
                             System.out.println("Transaction failed!!");
                         }
@@ -94,13 +113,13 @@ public class MiFareCardTest {
         }
     }
 
-    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, double amount, String passcode) {
+    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, String passcode, long timestamp) {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
 
         byte[] passcodeHash = SHA256.getHMAC(passcode, key);
-        PlainTransaction transaction = new PlainTransaction("12345678","1234567890ABCDEF",amount,passcodeHash, key, System.currentTimeMillis());
+        PlainTransaction transaction = new PlainTransaction(vmId, cardId,amount,passcodeHash, key, timestamp);
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

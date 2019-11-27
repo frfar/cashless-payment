@@ -1,6 +1,6 @@
 package web.structures;
 
-public class OfflineTransaction {
+public class OfflineTransaction implements Comparable <OfflineTransaction> {
 
     public String cardId;
     public String vmId;
@@ -18,6 +18,11 @@ public class OfflineTransaction {
         this.prevVmId = prevVmId;
         this.prevRemainingAmount = prevRemainingAmount;
         this.prev_timestamp = prev_timestamp;
+    }
+
+    @Override
+    public int compareTo(OfflineTransaction o) {
+        return Double.compare(this.timestamp, o.timestamp);
     }
 
     @Override

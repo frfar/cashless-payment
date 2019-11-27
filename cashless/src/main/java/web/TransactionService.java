@@ -1,7 +1,6 @@
 package web;
 
 import com.google.gson.*;
-import com.sun.javafx.binding.StringFormatter;
 import web.structures.OfflineTransaction;
 import web.structures.SendTransactionErrorResponse;
 import web.structures.SendTransactionResponse;

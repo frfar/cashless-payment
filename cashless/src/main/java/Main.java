@@ -73,7 +73,7 @@ public class Main {
                         System.out.println("Enter your passcode:");
                         keypad.flushBuffer();
                         String userPasscode = keypad.readPassword();
-s
+
                         byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);
 
                         if(!Arrays.equals(userPasscodeHash,passcodeHash)) {

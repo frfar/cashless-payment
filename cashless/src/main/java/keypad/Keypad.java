@@ -45,6 +45,7 @@ public class Keypad {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    break;
                 }
             }
         }

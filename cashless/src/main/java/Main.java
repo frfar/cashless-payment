@@ -71,6 +71,7 @@ public class Main {
 
                         Keypad keypad = Keypad.getKeypadInstance();
                         System.out.println("Enter your passcode:");
+                        keypad.flushBuffer();
                         String userPasscode = keypad.readPassword();
                         keypad.close();
 

@@ -4,23 +4,51 @@ import com.google.gson.Gson;
 import config.Config;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Keypad {
 
     private static Keypad keypad;
 
-    private static ProcessBuilder pb;
     private static Process p;
-    private static BufferedReader br;
+    private static Queue<String> lines = new LinkedList<>();
 
     private static Gson gson = new Gson();
 
     private static String[] command;
     private static final int numberOfLinePerKeyStroke = 6;
-    private static final int lineNumberWithKeyStroke1 = 1;
-    private static final int lineNumberWithKeyStroke2 = 4;
+    private static final int lineNumberWithKeyStroke = 1;
     private static final int numberOfKeyStrokesInPassword = 4;
+
+    private static class KeypadStream extends Thread {
+        private BufferedReader br;
+        private KeypadStreamCallback callback;
+
+        KeypadStream(BufferedReader br, KeypadStreamCallback callback) {
+            this.br = br;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+
+            while(true) {
+                try {
+                    callback.newLineInStream(br.readLine());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    interface KeypadStreamCallback {
+        void newLineInStream(String str);
+    }
 
     private Keypad() {
         Config config = null;
@@ -34,55 +62,55 @@ public class Keypad {
 
     public static Keypad getKeypadInstance() throws IOException {
 
-        if(keypad == null || p == null || br == null) {
+        if(keypad == null || p == null) {
             keypad = new Keypad();
         }
-        pb = new ProcessBuilder(Arrays.asList(command));
+        ProcessBuilder pb = new ProcessBuilder(Arrays.asList(command));
         p = pb.start();
-        br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        keypad.flushBuffer();
+        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        KeypadStream stream = new KeypadStream(br, str -> lines.add(str));
+        stream.start();
+
         return keypad;
     }
 
-    public String readKeyPressed() throws IOException {
-        String lineWithKeyStroke1 = "";
-        String lineWithKeyStroke2 = "";
+    public String readKeyPressed() {
+
+        while(lines.size() < numberOfLinePerKeyStroke) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        String lineWithKeyStroke = "";
 
         for(int i = 0; i < numberOfLinePerKeyStroke; i++) {
-            String line = br.readLine();
+            String line = lines.poll();
 
-            if(i == lineNumberWithKeyStroke1) {
-                lineWithKeyStroke1 = line;
-            }
-
-            if(i == lineNumberWithKeyStroke2) {
-                lineWithKeyStroke2 = line;
+            if(i == lineNumberWithKeyStroke) {
+                lineWithKeyStroke = line;
             }
         }
 
-        String keyPressed = Converter.parse(lineWithKeyStroke1);
-
-        if(keyPressed.equals("")) {
-            keyPressed = Converter.parse(lineWithKeyStroke2);
-        }
-
-        return keyPressed;
+        return Converter.parse(lineWithKeyStroke);
     }
 
-    public String readPassword() throws IOException {
+    public String readPassword() {
         StringBuilder password = new StringBuilder();
         for(int i = 0; i < numberOfKeyStrokesInPassword; i++) {
             password.append(readKeyPressed());
             System.out.print("*");
         }
-        System.lineSeparator();
+        System.out.println();
 
         return password.toString();
     }
 
-    public String readChars(int n, boolean... printChar) throws IOException {
+    public String readChars(int n, boolean... printChar) {
         StringBuilder password = new StringBuilder();
-        boolean flag = (printChar.length >= 1) ? printChar[0] : false;
+        boolean flag = (printChar.length >= 1) && printChar[0];
 
         for(int i = 0; i < n; i++) {
             String key = readKeyPressed();
@@ -91,12 +119,12 @@ public class Keypad {
                 System.out.print(key);
             }
         }
-        System.lineSeparator();
+        System.out.println();
 
         return password.toString();
     }
 
-    public String readLine() throws IOException {
+    public String readLine() {
         StringBuilder line = new StringBuilder();
         String key;
         while(!(key = readKeyPressed()).equals("Enter")) {
@@ -107,18 +135,12 @@ public class Keypad {
     }
     
     /** This is the method reads all lines in the buffer */
-    public void flushBuffer() throws IOException {
-
-        if(!br.ready()) {
-            return;
-        }
-    	String line = br.readLine();
-    	while (line != null)
-    		line = br.readLine();
+    public void flushBuffer() {
+        lines.clear();
     }
 
-    public void close() throws IOException {
-        br.close();
+    public void close() {
         p.destroy();
     }
 }
+

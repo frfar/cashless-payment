@@ -38,7 +38,11 @@ public class Keypad {
 
             while(true) {
                 try {
-                    callback.newLineInStream(br.readLine());
+                    String line = br.readLine();
+
+                    if(line != null) {
+                        callback.newLineInStream(line);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -97,10 +97,7 @@ public class Keypad {
             if(i == lineNumberWithKeyStroke) {
                 lineWithKeyStroke = line;
             }
-            System.out.println(line);
         }
-
-        System.out.println(lineWithKeyStroke);
 
         return Converter.parse(lineWithKeyStroke);
     }

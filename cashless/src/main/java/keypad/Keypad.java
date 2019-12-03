@@ -69,13 +69,13 @@ public class Keypad {
 
         if(keypad == null || p == null) {
             keypad = new Keypad();
-        }
-        ProcessBuilder pb = new ProcessBuilder(Arrays.asList(command));
-        p = pb.start();
-        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            ProcessBuilder pb = new ProcessBuilder(Arrays.asList(command));
+            p = pb.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-        KeypadStream stream = new KeypadStream(br, str -> lines.add(str));
-        stream.start();
+            KeypadStream stream = new KeypadStream(br, str -> lines.add(str));
+            stream.start();
+        }
 
         return keypad;
     }

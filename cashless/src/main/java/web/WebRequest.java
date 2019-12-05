@@ -33,7 +33,7 @@ public class WebRequest {
 
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 
-            wr.writeBytes(parameters.getQueryString());
+            wr.writeBytes(parameters.getQueryString(QueryParameter.CallType.POST));
             wr.flush();
             wr.close();
 
@@ -68,7 +68,7 @@ public class WebRequest {
 
     public static String sendGet(String url,QueryParameter queryParameter)  {
         try {
-            URL obj = new URL(url + queryParameter.getQueryString());
+            URL obj = new URL(url + queryParameter.getQueryString(QueryParameter.CallType.GET));
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
             con.setRequestMethod("GET");

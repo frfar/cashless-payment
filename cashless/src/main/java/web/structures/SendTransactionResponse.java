@@ -1,4 +1,4 @@
-package web;
+package web.structures;
 
 public class SendTransactionResponse {
     private SendTransactionSuccessResponse sendTransactionSuccessResponse;

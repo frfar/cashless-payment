@@ -5,6 +5,10 @@ import java.util.HashMap;
 
 public class QueryParameter {
 
+    enum CallType {
+        GET, POST
+    }
+
     private HashMap<String,String> queryParameters;
 
     private StringBuilder serializeParameter;
@@ -20,8 +24,6 @@ public class QueryParameter {
         try {
             if(!serializeParameter.toString().isEmpty()){
                 serializeParameter.append("&");
-            } else {
-                serializeParameter.append("?");
             }
             serializeParameter.append(URLEncoder.encode(key, "UTF-8"));
             serializeParameter.append("=");
@@ -31,8 +33,11 @@ public class QueryParameter {
         }
     }
 
-    String getQueryString(){
-        return serializeParameter.toString();
+    String getQueryString(CallType callType){
+        if(callType == CallType.POST)
+            return serializeParameter.toString();
+        else
+            return "?" + serializeParameter.toString();
     }
 
 }

@@ -22,12 +22,12 @@ public class PlainTransaction {
     /**
      * amount for the transaction.
      */
-    private int amount;
+    private double amount;
 
     /**
      * passcode of the card.
      */
-    private String passcode;
+    private byte[] passcode;
 
     /**
      * hashkey of the transaction.
@@ -35,19 +35,32 @@ public class PlainTransaction {
     private byte[] hashkey;
 
     /**
+     * timestamp for the transaction.
+     */
+    private long timestamp;
+
+    /**
+     * sequence number of the transaction.
+     * It increment by 1 everytime, a new transaction is added.
+     */
+    private short sequenceNumber;
+    /**
      *
      * @param vmId
      * @param cardId
      * @param amount
      * @param passcode
      * @param hashkey
+     * @param timestamp
      */
-    public PlainTransaction(String vmId, String cardId, int amount, String passcode, byte[] hashkey) {
+    public PlainTransaction(String vmId, String cardId, double amount, byte[] passcode, byte[] hashkey, long timestamp, short sequenceNumber) {
         this.vmId = vmId;
         this.cardId = cardId;
         this.amount = amount;
         this.passcode = passcode;
         this.hashkey = hashkey;
+        this.timestamp = timestamp;
+        this.sequenceNumber = sequenceNumber;
     }
 
     /**
@@ -59,15 +72,20 @@ public class PlainTransaction {
     public static PlainTransaction parse(byte[] transaction) {
         String vmId = DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,0,4));
         String atmId = DatatypeConverter.printHexBinary(Arrays.copyOfRange(transaction,4,12));
-        int amount = (int) (transaction[12] + transaction[13] * 0.01);
-        StringBuilder passcode = new StringBuilder();
-        passcode.append((transaction[14] & 0xF0) >> 4);
-        passcode.append((transaction[14] & 0x0F));
-        passcode.append((transaction[15] & 0xF0) >> 4);
-        passcode.append((transaction[15] & 0x0F));
-        byte[] hashkey = Arrays.copyOfRange(transaction, 16, 24);
+        double amount = (transaction[12] + transaction[13] * 0.01);
+        byte[] passcode = Arrays.copyOfRange(transaction,14,46);
+        byte[] hashkey = Arrays.copyOfRange(transaction, 46, 54);
 
-        return new PlainTransaction(vmId, atmId, amount, passcode.toString(), hashkey);
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.put(Arrays.copyOfRange(transaction,54,62));
+        buffer.flip();
+        long timestamp = buffer.getLong();
+
+        buffer = ByteBuffer.allocate(Short.BYTES);
+        buffer.put(Arrays.copyOfRange(transaction,62,64));
+        buffer.flip();
+        short sequenceNumber = buffer.getShort();
+        return new PlainTransaction(vmId, atmId, amount, passcode, hashkey, timestamp, sequenceNumber);
     }
 
     /**
@@ -78,11 +96,9 @@ public class PlainTransaction {
         byte[] vmIdBytes = DatatypeConverter.parseHexBinary(vmId);
         byte[] cardIdBytes = DatatypeConverter.parseHexBinary(cardId);
         byte amountDollars = (byte) Math.floor(amount);
-        byte amountCents = (byte) ((byte) (amount - amountDollars) * 100);
-        byte passcodeLSB = (byte) ((((passcode.charAt(0) - '0') & 0x0F) << 4) + ((passcode.charAt(1) - '0') & 0x0F));
-        byte passcodeMSB = (byte) ((((passcode.charAt(2) - '0') & 0x0F) << 4) + ((passcode.charAt(3) - '0') & 0x0F));
-        ByteBuffer buffer = ByteBuffer.allocate(vmIdBytes.length + cardIdBytes.length + 4 + hashkey.length);
-        buffer.put(vmIdBytes).put(cardIdBytes).put(amountDollars).put(amountCents).put(passcodeLSB).put(passcodeMSB).put(hashkey);
+        byte amountCents =  (byte) ((amount - amountDollars) * 100);
+        ByteBuffer buffer = ByteBuffer.allocate(vmIdBytes.length + cardIdBytes.length + 2 + passcode.length + hashkey.length + 8 + 2);
+        buffer.put(vmIdBytes).put(cardIdBytes).put(amountDollars).put(amountCents).put(passcode).put(hashkey).putLong(timestamp).putShort(sequenceNumber);
 
         return buffer.array();
     }
@@ -95,11 +111,11 @@ public class PlainTransaction {
         return cardId;
     }
 
-    public int getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public String getPasscode() {
+    public byte[] getPasscode() {
         return passcode;
     }
 
@@ -107,21 +123,32 @@ public class PlainTransaction {
         return hashkey;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public short getSequenceNumber() {
+        return sequenceNumber;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PlainTransaction that = (PlainTransaction) o;
-        return amount == that.amount &&
+        return Double.compare(that.amount, amount) == 0 &&
+                timestamp == that.timestamp &&
+                sequenceNumber == that.sequenceNumber &&
                 Objects.equals(vmId, that.vmId) &&
                 Objects.equals(cardId, that.cardId) &&
-                Objects.equals(passcode, that.passcode) &&
+                Arrays.equals(passcode, that.passcode) &&
                 Arrays.equals(hashkey, that.hashkey);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(vmId, cardId, amount, passcode);
+        int result = Objects.hash(vmId, cardId, amount, timestamp, sequenceNumber);
+        result = 31 * result + Arrays.hashCode(passcode);
         result = 31 * result + Arrays.hashCode(hashkey);
         return result;
     }
@@ -132,8 +159,10 @@ public class PlainTransaction {
                 "vmId='" + vmId + '\'' +
                 ", cardId='" + cardId + '\'' +
                 ", amount=" + amount +
-                ", passcode='" + passcode + '\'' +
+                ", passcode=" + Arrays.toString(passcode) +
                 ", hashkey=" + Arrays.toString(hashkey) +
+                ", timestamp=" + timestamp +
+                ", sequenceNumber=" + sequenceNumber +
                 '}';
     }
 }

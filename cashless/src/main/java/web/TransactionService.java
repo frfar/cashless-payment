@@ -65,7 +65,7 @@ public class TransactionService {
         query.addParameter("prev_timestamp", Long.toString(offlineTransaction.prevTimestamp));
         query.addParameter("transaction_sequence", Short.toString(offlineTransaction.transactionSequence));
 
-        String res = WebRequest.sendPost("http://e4421a4a.ngrok.io/offline_transaction/incomplete", query);
+        String res = WebRequest.sendPost("http://db351ad9.ngrok.io/offline_transaction/incomplete", query);
 
 //        System.out.println(res);
 

@@ -101,9 +101,12 @@ public class GUITest {
                             return;
                         }
 
-                        if(amount < 5) {
+                        if(amount < itemPrice) {
                             System.out.println("You don't have Sufficient balance!");
                             updateMessasge("You don't have Sufficient balance!");
+
+                            Thread.sleep(1000);
+                            updateMessasge("Please Swipe the Card:");
                             return;
                         }
 

@@ -1,3 +1,4 @@
+
 import com.pi4j.io.serial.Serial;
 import keypad.Keypad;
 import mifare.Acr122Device;
@@ -8,6 +9,7 @@ import org.nfctools.mf.card.MfCard;
 import security.AES;
 import security.SHA256;
 import security.utils.Utils;
+
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
 import web.TransactionUploadThread;
@@ -21,6 +23,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 
 public class Main {
 

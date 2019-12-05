@@ -77,16 +77,40 @@ public class GUITest {
                         System.out.println("The amount in card is: " + amount);
                         updateMessasge("The amount in card is: " + amount);
 
+                        Thread.sleep(1000);
+                        updateMessasge("Please select an item");
+                        keypad.flushBuffer();
+                        String item = keypad.readChars(3);
+
+                        double itemPrice = 0;
+
+                        if(item.equals("101")) {
+                            itemPrice = 2;
+                        } else if(item.equals("102")) {
+                            itemPrice = 2;
+                        } else if(item.equals("103")) {
+                            itemPrice = 3;
+                        }
+
+                        if(itemPrice == 0) {
+                            System.out.println("Please select a proper item!");
+                            updateMessasge("Please select a proper item!");
+
+                            Thread.sleep(1000);
+                            updateMessasge("Please Swipe the Card:");
+                            return;
+                        }
+
                         if(amount < 5) {
                             System.out.println("You don't have Sufficient balance!");
                             updateMessasge("You don't have Sufficient balance!");
                             return;
                         }
 
-                        double newAmount = amount - 5;
+                        double newAmount = amount - itemPrice;
 
-                        System.out.println("Making a purchase of $5");
-                        updateMessasge("Making a purchase of $5");
+                        System.out.println("Making a purchase of $" + itemPrice);
+                        updateMessasge("Making a purchase of $" + itemPrice);
 
                         long timestamp =  System.currentTimeMillis();
                         writeTrasaction(mfCard, mfReaderWriter, "12345677","1234567890ABCDEF", newAmount, userPasscode, timestamp, (short)(sequenceNumber + 1));

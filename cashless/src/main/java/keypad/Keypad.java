@@ -58,8 +58,8 @@ public class Keypad {
     private Keypad() {
         Config config = null;
         try {
-            config = gson.fromJson(new FileReader("config.json"),Config.class);
-            command = new String[] {"sudo","usbhid-dump","-m",config.keypadId,"-es"};
+            config = Config.getInstance();
+            command = new String[] {"sudo","usbhid-dump","-m",config.getKeypadId(),"-es"};
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

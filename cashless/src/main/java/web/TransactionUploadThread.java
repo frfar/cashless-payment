@@ -1,7 +1,11 @@
 package web;
 
+import config.Config;
 import web.structures.OfflineTransaction;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.PriorityQueue;
 
 public class TransactionUploadThread implements Runnable {
@@ -11,6 +15,25 @@ public class TransactionUploadThread implements Runnable {
     private static PriorityQueue<OfflineTransaction> offlineTransactions = new PriorityQueue<>();
 
     private boolean isConnected = true;
+
+    public boolean isConnected() {
+        URL obj = null;
+        try {
+            Config config = Config.getInstance();
+            obj = new URL(Config.getInstance().getServer() + new QueryParameter().getQueryString(QueryParameter.CallType.GET));
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept-Language","en-US,en;q=0.5");
+            con.setConnectTimeout(5000);
+            con.setReadTimeout(5000);
+            int responseCode = con.getResponseCode();
+            isConnected = (responseCode / 100) == 2;
+        } catch (IOException e) {
+            e.printStackTrace();
+            isConnected = false;
+        }
+        return isConnected;
+    }
 
     private TransactionUploadThread() {
     }

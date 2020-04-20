@@ -1,10 +1,13 @@
 package web;
 
 import com.google.gson.*;
+import config.Config;
 import web.structures.OfflineTransaction;
 import web.structures.SendTransactionErrorResponse;
 import web.structures.SendTransactionResponse;
 import web.structures.SendTransactionSuccessResponse;
+
+import java.io.FileNotFoundException;
 
 public class TransactionService {
 
@@ -35,7 +38,14 @@ public class TransactionService {
         query.addParameter("passcode", passcode);
 
         WebRequest req = new WebRequest();
-        String res = req.sendGet("http://19d69285.ngrok.io/transaction", query);
+        String baseURL = "";
+        try {
+            baseURL = Config.getInstance().getServer();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+        String res = req.sendGet(baseURL + "/transaction", query);
         System.out.println(res);
 
         JsonObject objectJson = new JsonParser().parse(res).getAsJsonObject();
@@ -65,7 +75,15 @@ public class TransactionService {
         query.addParameter("prev_timestamp", Long.toString(offlineTransaction.prevTimestamp));
         query.addParameter("transaction_sequence", Short.toString(offlineTransaction.transactionSequence));
 
-        String res = WebRequest.sendPost("http://db351ad9.ngrok.io/offline_transaction/incomplete", query);
+        String baseURL = "";
+        try {
+            baseURL = Config.getInstance().getServer();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        String res = WebRequest.sendPost(baseURL + "/offline_transaction/incomplete", query);
 
 //        System.out.println(res);
 

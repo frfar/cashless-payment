@@ -2,3 +2,14 @@
 /node_modules
 *.local
 .vscode
+cashless/.classpath
+cashless/.gradle/
+cashless/.idea/
+cashless/.project
+cashless/.settings/
+cashless/bin/
+cashless/build/
+cashless/gradle/
+cashless/gradlew
+cashless/gradlew.bat
+nodejs/node_modules/

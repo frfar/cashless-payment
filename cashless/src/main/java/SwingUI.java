@@ -13,9 +13,17 @@ import net.miginfocom.swing.*;
  * @author unknown
  */
 public class SwingUI extends JPanel {
-    public SwingUI() {
+
+    public SwingUI(){
         initComponents();
-        list1.setListData(new String[] {"lays 101 $2","doritos 102 $2", "cup cake 103 $3"});
+        list1.setListData(new String[]{"lays 101 $2", "doritos 102 $2", "cup cake 103 $3"});
+    }
+
+    public SwingUI(boolean displayList) {
+        initComponents();
+        if (displayList) {
+            list1.setListData(new String[]{"lays 101 $2", "doritos 102 $2", "cup cake 103 $3"});
+        }
     }
 
     public void setMessageLabel(String text) {
@@ -63,6 +71,10 @@ public class SwingUI extends JPanel {
         UIKeypad.addKeyStroke("0");
     }
 
+    private void buttonEnterActionPerformed(ActionEvent e){
+        UIKeypad.addKeyStroke("\n");
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner Evaluation license - unknown
@@ -78,6 +90,7 @@ public class SwingUI extends JPanel {
         button8 = new JButton();
         button9 = new JButton();
         button10 = new JButton();
+        buttonEnter = new JButton();
 
         //======== this ========
         setBorder (new javax. swing. border. CompoundBorder( new javax .swing .border .TitledBorder (new javax. swing
@@ -160,6 +173,10 @@ public class SwingUI extends JPanel {
         button10.setText("0");
         button10.addActionListener(e -> button10ActionPerformed(e));
         add(button10, "cell 2 7");
+
+        buttonEnter.setText("Enter");
+        buttonEnter.addActionListener(e -> buttonEnterActionPerformed(e));
+        add(buttonEnter, "cell 4 7");
         // JFormDesigner - End of component initialization  //GEN-END:initComponents
     }
 
@@ -177,5 +194,6 @@ public class SwingUI extends JPanel {
     private JButton button8;
     private JButton button9;
     private JButton button10;
+    private JButton buttonEnter;
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

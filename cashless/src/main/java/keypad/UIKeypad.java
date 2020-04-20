@@ -54,6 +54,9 @@ public class UIKeypad {
 
         for(int i = 0; i < n; i++) {
             String key = readKeyPressed();
+            if (key.equals("\n")){
+                break;
+            }
             password.append(key);
             if (flag) {
                 System.out.print(key);

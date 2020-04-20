@@ -1,4 +1,5 @@
 import config.Config;
+import keypad.UIKeypad;
 import mifare.Acr122Device;
 import mifare.MifareManager;
 import org.nfctools.mf.MfCardListener;
@@ -18,31 +19,35 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import keypad.UIKeypad;
 
-public class GUITest {
+public class VendorMain {
 
-    private static final String NAME = "vm123456";
+    private static final String NAME = "authorized-vendor";
     private static File privatekeyFile = new File(Config.privateKeyFileName);
     private static File publickeyFile = new File(Config.publicKeyFileName);
-    private static SwingUI swingUI = new SwingUI();
+    private static SwingUI swingUI = new SwingUI(false);
 
     public static void main(String[] args) {
 
         JFrame frame = new JFrame();
 
-        SwingUtilities.invokeLater(() -> {
-            frame.add(swingUI);
-            frame.setSize(500,300);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setVisible(true);
-        });
-
         Acr122Device acr122;
         TransactionUploadThread transactionUploadThread = TransactionUploadThread.getInstance();
 
+        // Require Internet connection
+        if (!transactionUploadThread.isConnected()){
+            System.out.println("Internet is not connected. Please try again later");
+            return;
+        }
+
         try {
             acr122 = new Acr122Device();
+            SwingUtilities.invokeLater(() -> {
+                frame.add(swingUI);
+                frame.setSize(300,300);
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setVisible(true);
+            });
         } catch (RuntimeException re) {
             System.out.println("No ACR122 reader found.");
             return;
@@ -62,62 +67,29 @@ public class GUITest {
                         byte[] passcodeSecret = transaction.getHashkey();
 
                         UIKeypad keypad = UIKeypad.getKeypadInstance();
-                        System.out.println("Enter your passcode:");
-                        updateMessasge("Enter your passcode:");
-                        keypad.flushBuffer();
-                        String userPasscode = keypad.readPassword();
-
-                        byte[] userPasscodeHash = SHA256.getHMAC(userPasscode,passcodeSecret);
-
-                        if(!Arrays.equals(userPasscodeHash,passcodeHash)) {
-                            System.out.println("Passcode is not valid!");
-                            updateMessasge("Passcode is not valid!");
-                            return;
-                        }
 
                         System.out.println("The amount in card is: " + amount);
-                        updateMessasge("The amount in card is: " + amount);
-
+                        updateMessasge("Current amount in card is: " + amount);
                         Thread.sleep(1000);
-                        updateMessasge("Please select an item");
+                        updateMessasge("Enter the amount you want to add");
                         keypad.flushBuffer();
-                        String item = keypad.readChars(3);
+                        String addedAmount = keypad.readChars(3);
+                        int intAddedAmount = Integer.parseInt(addedAmount);
 
-                        double itemPrice = 0;
-
-                        if(item.equals("101")) {
-                            itemPrice = 2;
-                        } else if(item.equals("102")) {
-                            itemPrice = 2;
-                        } else if(item.equals("103")) {
-                            itemPrice = 3;
-                        }
-
-                        if(itemPrice == 0) {
-                            System.out.println("Please select a proper item!");
-                            updateMessasge("Please select a proper item!");
+                        if(amount + intAddedAmount > 100) {
+                            System.out.println("You can't add more than $100!");
 
                             Thread.sleep(1000);
                             updateMessasge("Please Swipe the Card:");
                             return;
                         }
 
-                        if(amount < itemPrice) {
-                            System.out.println("You don't have Sufficient balance!");
-                            updateMessasge("You don't have Sufficient balance!");
+                        double newAmount = amount + intAddedAmount;
 
-                            Thread.sleep(1000);
-                            updateMessasge("Please Swipe the Card:");
-                            return;
-                        }
-
-                        double newAmount = amount - itemPrice;
-
-                        System.out.println("Making a purchase of $" + itemPrice);
-                        updateMessasge("Making a purchase of $" + itemPrice);
+                        updateMessasge("Adding amount of $" + intAddedAmount);
 
                         long timestamp =  System.currentTimeMillis();
-                        writeTrasaction(mfCard, mfReaderWriter, "12345677","1234567890ABCDEF", newAmount, userPasscode, timestamp, (short)(sequenceNumber + 1));
+                        writeTrasaction(mfCard, mfReaderWriter, "12345679","1234567890ABCDEF", newAmount, passcodeHash, passcodeSecret, timestamp, (short)(sequenceNumber + 1));
 
                         PlainTransaction retrievedTransaction = retrieveTransaction(mfCard, mfReaderWriter);
                         double retrievedAmount = retrievedTransaction.getAmount();
@@ -136,7 +108,7 @@ public class GUITest {
                                 prevVmIntId = "3";
                             }
 
-                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","3", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp(), retrievedTransaction.getSequenceNumber());
+                            OfflineTransaction offlineTransaction = new OfflineTransaction("1","2", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp(), retrievedTransaction.getSequenceNumber());
                             transactionUploadThread.addOfflineTransaction(offlineTransaction);
                         } else {
                             System.out.println("Transaction failed!!");
@@ -153,10 +125,6 @@ public class GUITest {
 
                 }
             });
-//            System.out.println("Press ENTER to exit");
-//            System.in.read();
-//
-//            acr122.close();
             while(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,9 +141,12 @@ public class GUITest {
         SecureRandom secureRandom = new SecureRandom();
         byte[] key = new byte[8];
         secureRandom.nextBytes(key);
-
         byte[] passcodeHash = SHA256.getHMAC(passcode, key);
-        PlainTransaction transaction = new PlainTransaction(vmId, cardId,amount,passcodeHash, key, timestamp, sequenceNumber);
+        writeTrasaction(mfCard, mfReaderWriter, vmId, cardId, amount, passcodeHash, key, timestamp, sequenceNumber);
+    }
+
+    private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, byte[] passcodeHash, byte[] passcodeKey, long timestamp, short sequenceNumber) {
+        PlainTransaction transaction = new PlainTransaction(vmId, cardId,amount,passcodeHash, passcodeKey, timestamp, sequenceNumber);
 
         try {
             byte[] transactionBytes = TransactionManager.encryptAndSignTransaction(transaction,privatekeyFile, publickeyFile);

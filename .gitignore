@@ -13,3 +13,5 @@ cashless/gradle/
 cashless/gradlew
 cashless/gradlew.bat
 nodejs/node_modules/
+front-end/cashless-payment/.idea
+front-end/cashless-payment/node_modules

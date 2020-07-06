@@ -5,8 +5,13 @@ plugins {
 group 'com.utd.dslab'
 version '1.0-SNAPSHOT'
 
+task copyResources (type: Copy) {
+    from sourceSets.main.resources.srcDirs
+    into "$buildDir/libs"
+    rename '(.+)_example(.+)', '$1$2'
+}
+
 task createJar(type: Jar) {
-    createVendorJar.dependsOn clean
     manifest {
         attributes 'Implementation-Title': project.name,
                 'Implementation-Version': version,
@@ -16,17 +21,9 @@ task createJar(type: Jar) {
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
-    createVendorJar.finalizedBy copyResources
-}
-
-task copyResources (type: Copy) {
-    from sourceSets.main.resources.srcDirs
-    into "$buildDir/libs"
-    rename '(.+)_example(.+)', '$1$2'
 }
 
 task createVendorJar(type: Jar) {
-    createVendorJar.dependsOn clean
     manifest {
         attributes 'Implementation-Title': project.name,
                 'Implementation-Version': version,
@@ -36,7 +33,6 @@ task createVendorJar(type: Jar) {
     baseName = project.name + '-vendor'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
-    createVendorJar.finalizedBy copyResources
 }
 
 sourceCompatibility = 1.8

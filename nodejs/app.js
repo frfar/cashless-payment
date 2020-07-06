@@ -1,11 +1,16 @@
 const aesjs = require('aes-js');
 const eccrypto = require('eccrypto');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const chalk = require('chalk');
 const express = require('express');
+const jwt = require('jsonwebtoken')
 const app = express();
 let connection = require('./SequelizeConnection');
+
 let sequelize = connection.sequelize();
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 const bodyParser = require('body-parser');
 const users = sequelize.import('./models/users');
@@ -26,15 +31,16 @@ let key = new Uint8Array(key_256);
 const privateKey = eccrypto.generatePrivate();
 const publicKey = eccrypto.getPublic(privateKey);
 
-let port = require('./configs/port.js.local')
-app.set('port', port.number)
+let app_config = require('./configs/config.js.local')
+app.set('port', app_config.port_number)
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Auth-Token");
+    res.header("Access-Control-Expose-Headers", "Auth-Token");
     res.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,OPTIONS");
     if (Object.keys(req.query).length === 0 && req.query.constructor === Object) {
         req.query = req.body;
@@ -61,8 +67,11 @@ const iv = crypto.randomBytes(16).toString('base64');
 
 // fetch user by email
 app.get('/users', (req,res) => {
-    users.findOne({
-        where: {email: req.query.email}
+    users.findAll({
+        where: {email: {
+            [Op.like]: '%'+req.query.email+'%'
+        }
+    }
         })
         .then(user_info => {
         if (user_info){
@@ -288,6 +297,12 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
     
 }
 
+
+app.get('/offline_transaction', (req, res) => {
+    offline_transaction.findAll().then((transactions) => {
+        res.status(200).json(transactions);
+    })
+})
 
 // find all pending transactions for a card
 app.get('/offline_transaction/pending', (req,res) => {
@@ -531,3 +546,125 @@ app.listen(app.get('port'), (err) => {
     }
     console.log('Lisening on port ' + app.get('port'));
 })
+
+const is_empty = (string) => string.trim().length === 0;
+const is_undefined = (entity) => entity === undefined;
+
+app.post('/register', auth, async (req,res) => {
+    if (!req.user._isAdmin) {
+        return res.status(401).send({
+            message: "Unauthorized"
+        })
+    }
+    const name = req.body.name;
+    const password = req.body.password;
+    const email = req.body.email;
+    const contact = req.body.contact;
+    if ([name, password, email, contact].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    const passhash = await bcrypt.hash(password, 10)
+    users.findAll({
+        where: {email: email }
+        })
+        .then(user_info => {
+        if (user_info){
+            if (user_info.length === 0){
+                users.create({
+                    name: name,
+                    passhash: passhash,
+                    email: email,
+                    contact: contact
+                }).then(
+                    result => {
+                        if (result){
+                            res.status(200).json({
+                                message: "User created. User ID = " + result.id
+                            });
+                        } else {
+                            res.status(500).json({
+                                'message': 'Internal sever error'
+                            });
+                        }
+                    }
+                )
+            }else{
+                res.status(200).json({
+                    'message': "User with email already exists"
+                });
+            }
+        }else{
+            res.status(500).json({
+                'message': 'Internal sever error'
+            });
+        }
+    })
+});
+
+function auth(req, res, next){
+    const token = req.header('Auth-Token');
+    if (!token) return res.status(401).json({
+        message: "Access denied"
+    })
+    try {
+        const verified = jwt.verify(token, app_config.token_secret);
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({
+            message: "Invalid token"
+        })
+    }
+}
+
+
+app.post('/login', async (req,res) => {
+    let password = req.body.password;
+    let email = req.body.email;
+    if ([password, email].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    const user_info = await users.findOne({where: {email: email }});
+    if (!user_info){
+        return res.status(400).json({
+            message: "Invalid email/password"
+        })
+    }
+    const validPass = await bcrypt.compare(password, user_info.passhash);
+    const isAdmin = !!+user_info.is_admin;
+    if(validPass){
+        const token = jwt.sign({_id: user_info.id, _isAdmin: isAdmin}, app_config.token_secret)
+        return res.header('Auth-Token', token).status(200).json({
+            id: user_info.id,
+            name: user_info.name,
+            email: user_info.email,
+            contact: user_info.contact,
+            isAdmin: isAdmin   
+        })
+    } else {
+        return res.status(400).json({
+            message: "Invalid email/password"
+        })
+    }
+    
+});
+
+
+app.post('/changePassword', auth, async (req,res) => {
+    const newPassword = req.body.newPassword;
+    if ([newPassword].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    const passhash = await bcrypt.hash(newPassword, 10);
+    const user_info = await users.findOne({where: {id: req.user._id }});
+    if (!user_info){
+        return res.status(400).json({
+            message: "No user found with User ID"
+        })
+    }
+    user_info.passhash = passhash;
+    await user_info.save();
+    return res.status(200).send({
+        message: "Password Changed Successfully"
+    })
+});

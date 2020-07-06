@@ -1,0 +1,29 @@
+
+.App {
+  margin-top: 15px;
+}
+
+.App .navbar-brand {
+  font-weight: bold;
+}
+
+.NotFound {
+  padding-top: 100px;
+  text-align: center;
+}
+
+
+@media all and (min-width: 480px) {
+  .Login, .ChangePassword {
+    padding: 60px 0;
+  }
+
+  .Login, .ChangePassword form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+}
+
+a, a:hover {
+  text-decoration: none !important;
+}

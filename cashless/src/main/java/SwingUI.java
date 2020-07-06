@@ -16,7 +16,7 @@ public class SwingUI extends JPanel {
 
     public SwingUI(){
         initComponents();
-        list1.setListData(new String[]{"lays 101 $2", "doritos 102 $2", "cup cake 103 $3"});
+        list1.setListData(new String[]{"lays 101 $2", "doritos 102 $20", "cup cake 103 $3"});
     }
 
     public SwingUI(boolean displayList) {

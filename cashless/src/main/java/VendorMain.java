@@ -8,6 +8,7 @@ import org.nfctools.mf.card.MfCard;
 import security.SHA256;
 import transaction.PlainTransaction;
 import transaction.TransactionManager;
+import web.AuthenticationService;
 import web.TransactionUploadThread;
 import web.structures.OfflineTransaction;
 
@@ -18,7 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 public class VendorMain {
 
@@ -26,13 +26,13 @@ public class VendorMain {
     private static File privatekeyFile = new File(Config.privateKeyFileName);
     private static File publickeyFile = new File(Config.publicKeyFileName);
     private static SwingUI swingUI = new SwingUI(false);
+    private static LoginForm loginForm = new LoginForm();
+    private static TransactionUploadThread transactionUploadThread;
 
-    public static void main(String[] args) {
-
-        JFrame frame = new JFrame();
+    public static void main(String[] args) throws InterruptedException {
 
         Acr122Device acr122;
-        TransactionUploadThread transactionUploadThread = TransactionUploadThread.getInstance();
+        transactionUploadThread = TransactionUploadThread.getInstance();
 
         // Require Internet connection
         if (!transactionUploadThread.isConnected()){
@@ -40,6 +40,25 @@ public class VendorMain {
             return;
         }
 
+        JFrame jFrame = new JFrame();
+        jFrame.add(loginForm);
+        jFrame.setSize(300, 300);
+        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jFrame.setVisible(true);
+
+        while (!AuthenticationService.isLoggedIn()){
+            Thread.sleep(1000);
+        }
+
+        jFrame.setVisible(false);
+        if (AuthenticationService.isLoggedIn()) {
+            vendorMain();
+        }
+    }
+
+    private static void vendorMain() {
+        JFrame frame = new JFrame();
+        Acr122Device acr122;
         try {
             acr122 = new Acr122Device();
             SwingUtilities.invokeLater(() -> {

@@ -75,6 +75,7 @@ public class GUITest {
                             return;
                         }
 
+
                         System.out.println("The amount in card is: " + amount);
                         updateMessasge("The amount in card is: " + amount);
 
@@ -88,7 +89,7 @@ public class GUITest {
                         if(item.equals("101")) {
                             itemPrice = 2;
                         } else if(item.equals("102")) {
-                            itemPrice = 2;
+                            itemPrice = 20;
                         } else if(item.equals("103")) {
                             itemPrice = 3;
                         }
@@ -138,6 +139,7 @@ public class GUITest {
 
                             OfflineTransaction offlineTransaction = new OfflineTransaction("1","3", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp(), retrievedTransaction.getSequenceNumber());
                             transactionUploadThread.addOfflineTransaction(offlineTransaction);
+                            dispenseAction();
                         } else {
                             System.out.println("Transaction failed!!");
                             updateMessasge("Transaction failed!!");
@@ -167,6 +169,11 @@ public class GUITest {
         SwingUtilities.invokeLater(() -> {
             swingUI.setMessageLabel(message);
         });
+    }
+
+    private static void dispenseAction(){
+        // Stub for dispensing action
+        JOptionPane.showMessageDialog(null, "Dispense action complete", "Dispensing Item! " , JOptionPane.INFORMATION_MESSAGE);
     }
 
     private static void writeTrasaction(MfCard mfCard, MfReaderWriter mfReaderWriter, String vmId, String cardId, double amount, String passcode, long timestamp, short sequenceNumber) {

@@ -19,6 +19,15 @@ module.exports = function(sequelize, DataTypes) {
     contact: {
       type: DataTypes.STRING(15),
       allowNull: false
+    }, 
+    passhash: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    is_admin: {
+      type: DataTypes.TINYINT(1),
+      allowNull: false,
+      defaultValue: 0
     }
   }, {
     tableName: 'users'

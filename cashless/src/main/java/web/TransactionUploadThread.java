@@ -65,7 +65,6 @@ public class TransactionUploadThread implements Runnable {
                     if(!isConnected) {
                         System.out.println("Internet is connected now!");
                     }
-                    System.out.println(ret);
                     isConnected = true;
                 } else {
                     if(isConnected) {

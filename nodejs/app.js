@@ -19,6 +19,7 @@ const transactions = sequelize.import('./models/transactions');
 const vending_machines = sequelize.import('./models/vending_machines');
 const transaction_types = sequelize.import('./models/transaction_types');
 const offline_transaction = sequelize.import('./models/offline_transactions');
+const vendor_transaction = sequelize.import('./models/vendor_transaction');
 
 //32 bytes key for aes
 var key_256 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -300,6 +301,10 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
 
 app.get('/offline_transaction', (req, res) => {
     offline_transaction.findAll().then((transactions) => {
+        transactions.map(e => {
+            e.timestamp = new Date(e.timestamp).toUTCString();
+            e.prev_timestamp = new Date(e.prev_timestamp).toUTCString();
+        })
         res.status(200).json(transactions);
     })
 })
@@ -668,3 +673,69 @@ app.post('/changePassword', auth, async (req,res) => {
         message: "Password Changed Successfully"
     })
 });
+
+app.post('/vendor_transaction', async (req,res) => {
+    let vendor_id = req.body.vendor_id;
+    let card_id = req.body.card_id;
+    let amount = req.body.amount;
+    let timestamp = req.body.timestamp;
+    console.log(req.body);
+    if ([vendor_id, card_id, amount, timestamp].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    vendor_transaction.create({
+        vendor_id: vendor_id,
+        card_id: card_id,
+        collected_amount: amount,
+        timestamp: timestamp
+    }).then(
+        result => {
+            if (result){
+                res.status(200).json({
+                    message: "Vendor transaction added. ID = " + result.id
+                });
+            } else {
+                res.status(500).json({
+                    'message': 'Internal sever error'
+                });
+            }
+        }
+        
+    )
+    
+});
+
+app.get('/vendor_transaction', async (req,res) => {
+    let vendor_id = req.query.vendor_id;
+    if ([vendor_id].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    vendor_transaction.findAll({
+        where: {vendor_id: vendor_id}
+    }).then(
+        result => {
+            if (result){
+                result.map(e => {
+                    e.timestamp = new Date(e.timestamp).toUTCString();
+                })
+                res.status(200).json(result);
+            } else {
+                res.status(200).json({
+                    'message': 'No transactions for the vendor'
+                });
+            }
+        }
+        
+    )
+})
+
+app.get('/vendors', async (req, res) => {
+    let has_transactions = req.query.has_transactions === "true";
+    const vendors = await sequelize.query('SELECT distinct users.id, users.name, users.email FROM users' +
+     (has_transactions ? ' inner join vendor_transactions vt on vt.vendor_id = users.id' : ''), {
+        model: users,
+        mapToModel: true // pass true here if you have any mapped fields
+    });
+
+    res.status(200).json(vendors);
+})

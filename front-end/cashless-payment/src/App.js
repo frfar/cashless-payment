@@ -1,5 +1,4 @@
 import React from 'react'
-import axios from "axios";
 import {Link} from "react-router-dom";
 import {Navbar, Nav, Button} from "react-bootstrap";
 import "./App.css";
@@ -13,7 +12,6 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            transactions: [],
             isLoggedIn: false,
             isAdmin: false,
             userToken: '',
@@ -22,25 +20,6 @@ class App extends React.Component {
         this.handleLogin = this.handleLogin.bind(this);
         this.handleLogout = this.handleLogout.bind(this);
     }
-
-    componentDidMount() {
-        axios.get(`http://localhost:3000/offline_transaction`)
-            .then(
-                res => {
-                    const transactions = res.data;
-                    this.setState(
-                        {
-                            transactions: transactions
-                        }
-                    )
-                }
-            ).catch(
-            err => {
-                alert(err);
-            }
-        )
-    }
-
 
     handleLogin(userInfo, userToken){
 
@@ -79,10 +58,7 @@ class App extends React.Component {
     }
 
     render() {
-
-        const data = this.state.transactions;
         const isLoggedIn = this.state.isLoggedIn;
-
         return (
             <Container className="App">
                 <Navbar fluid="true" bg="light">
@@ -101,7 +77,6 @@ class App extends React.Component {
                 </Navbar>
                 <Routes
                     isLoggedIn={isLoggedIn}
-                    data={data}
                     isAdmin={this.state.isAdmin}
                     userToken = {this.state.userToken}
                     handleLogin={(userInfo, userToken) => this.handleLogin(userInfo, userToken)}

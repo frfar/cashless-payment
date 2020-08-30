@@ -86,6 +86,16 @@ public class TransactionService {
         String res = WebRequest.sendPost(baseURL + "/offline_transaction/incomplete", query);
 
 //        System.out.println(res);
+        if (res != null && offlineTransaction.hasVendor()) {
+            QueryParameter vendorTransact =  new QueryParameter();
+            vendorTransact.addParameter("vendor_id", offlineTransaction.getVendorId());
+            vendorTransact.addParameter("card_id", offlineTransaction.cardId);
+            vendorTransact.addParameter("timestamp", Long.toString(offlineTransaction.timestamp));
+            double amount = offlineTransaction.remainingAmount - offlineTransaction.prevRemainingAmount;
+            vendorTransact.addParameter("amount", String.format("%.02f", amount));
+
+            res = WebRequest.sendPost(baseURL + "/vendor_transaction", vendorTransact);
+        }
 
         return res;
     }

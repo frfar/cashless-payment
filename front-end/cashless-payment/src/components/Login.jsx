@@ -34,7 +34,7 @@ export default function Login(props) {
                 }
             ).catch(
             err => {
-                if (err.response.data.message !== undefined) {
+                if (err.response !== undefined && err.response.data.message !== undefined) {
                     alert(err.response.data.message);
                 }
                 console.log(err.response);

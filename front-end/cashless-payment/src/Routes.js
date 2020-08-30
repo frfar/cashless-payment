@@ -5,6 +5,7 @@ import NotFound from "./components/404";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ChangePassword from "./components/ChangePassword";
+import VendorTransaction from "./components/VendorTransaction";
 
 export default function Routes(props) {
     const data = props.data;
@@ -17,7 +18,8 @@ export default function Routes(props) {
             <Route exact path="/" render={(props) => isLoggedIn ? (<Home {...props} data={data} isAdmin={isAdmin}/>) : (<Redirect to="/login"/>)} />
             <Route exact path="/login" render={(props) => <Login {...props} handleLogin={handleLogin}/>}/>
             <Route exact path="/register" render={(props) => isAdmin ? (<Register {...props} userToken={token}/>) : (<Redirect to="/" />)}/>
-            <Route exact path="/changePassword" render={(props) => <ChangePassword {...props} userToken={token} />}/>
+            <Route exact path="/changePassword" render={(props) => isLoggedIn ? <ChangePassword {...props} userToken={token} /> : (<Redirect to="/login"/>)}/>
+            <Route exact path="/vendor_transaction" render={(props) => isLoggedIn ? <VendorTransaction {...props} /> : (<Redirect to="/login"/>)}/>
             <Route>
                 <NotFound />
             </Route>

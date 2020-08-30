@@ -1,9 +1,10 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./Home.css";
-import styled from 'styled-components'
-import {useTable} from 'react-table'
 import {Link} from "react-router-dom";
-import {Button, Table} from "react-bootstrap";
+import {Button} from "react-bootstrap";
+import axios from "axios";
+import styled from "styled-components";
+import ReactTable from "./ReactTable";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -38,48 +39,45 @@ const Styles = styled.div`
   }
 `;
 
-function ReactTable({columns, data}) {
-    // Use the state and functions returned from useTable to build your UI
-    const {
-        getTableProps,
-        getTableBodyProps,
-        headerGroups,
-        rows,
-        prepareRow,
-    } = useTable({
-        columns,
-        data,
-    })
 
-    // Render the UI for your table
+function NumberedList(props) {
+    const vendors = props.vendors;
+    const listItems = vendors.map((vendor) =>
+        <li key={vendor.id}>
+            <Link to={{
+                pathname: "vendor_transaction",
+                vendor: vendor,
+                isAdmin: props.isAdmin
+            }}>
+            {vendor.name} ({vendor.email})
+            </Link>
+        </li>
+    );
     return (
-        <Table responsive {...getTableProps()}>
-            <thead>
-            {headerGroups.map(headerGroup => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                    {headerGroup.headers.map(column => (
-                        <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-                    ))}
-                </tr>
-            ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-            {rows.map((row, i) => {
-                prepareRow(row)
-                return (
-                    <tr {...row.getRowProps()}>
-                        {row.cells.map(cell => {
-                            return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                        })}
-                    </tr>
-                )
-            })}
-            </tbody>
-        </Table>
-    )
+        <ul>{listItems}</ul>
+    );
 }
 
 export default function Home(props) {
+    const [vendors, setVendors] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    useEffect(() => {
+        props.isAdmin && axios.get("http://localhost:3000/vendors?has_transactions=true").then(
+            result => {
+                setVendors(result.data);
+            }
+        );
+        props.isAdmin && axios.get(`http://localhost:3000/offline_transaction`)
+            .then(
+                res => {
+                    setTransactions(res.data);
+                }
+            ).catch(
+                err => {
+                    alert(err);
+                }
+            )
+    }, [props.isAdmin]);
     const columns = [
 
         {
@@ -123,7 +121,6 @@ export default function Home(props) {
             accessor: 'transaction_sequence',
         }
     ];
-    const data = props.isAdmin ? props.data : [];
     return (
         <div className="Home">
             <div className="lander">
@@ -145,11 +142,18 @@ export default function Home(props) {
             </div>
             {
                 props.isAdmin &&
-                (<div>
-                    <h3>Transactions: </h3>
-                    < Styles>
-                        < ReactTable columns={columns} data={data}/>
-                    </Styles>
+                (
+                <div>
+                    <div>
+                        <h3>Vendor Transactions</h3>
+                        <NumberedList isAdmin={props.isAdmin} vendors={vendors}/>
+                    </div>
+                    <div>
+                        <h3>All Transactions: </h3>
+                        < Styles>
+                            < ReactTable columns={columns} data={transactions}/>
+                        </Styles>
+                    </div>
                 </div>)
             }
         </div>

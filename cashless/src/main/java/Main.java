@@ -31,6 +31,9 @@ public class Main {
     private static File privatekeyFile = new File("ec256-key-pair-pkcs8.pem");
     private static File publickeyFile = new File("ec256-public.pem");
 
+    // TODO: Implement Logging
+    // TODO: Implement save upload queue to file on abrupt termination
+
     public static void main(String[] args) {
 
         if(args.length == 0) {

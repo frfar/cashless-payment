@@ -101,6 +101,12 @@ public class VendorMain {
                             Thread.sleep(1000);
                             updateMessasge("Please Swipe the Card:");
                             return;
+                        } else if (intAddedAmount <= 0) {
+                            System.out.println("Amount must be greater than $0!");
+                            Thread.sleep(1000);
+
+                            updateMessasge("Please Swipe the Card:");
+                            return;
                         }
 
                         double newAmount = amount + intAddedAmount;
@@ -128,6 +134,7 @@ public class VendorMain {
                             }
 
                             OfflineTransaction offlineTransaction = new OfflineTransaction("1","2", retrievedAmount, retrievedTransaction.getTimestamp(),prevVmIntId,amount, transaction.getTimestamp(), retrievedTransaction.getSequenceNumber());
+                            offlineTransaction.setVendorId(AuthenticationService.getAuthUser().getId());
                             transactionUploadThread.addOfflineTransaction(offlineTransaction);
                         } else {
                             System.out.println("Transaction failed!!");

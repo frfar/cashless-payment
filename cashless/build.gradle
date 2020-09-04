@@ -6,12 +6,14 @@ group 'com.utd.dslab'
 version '1.0-SNAPSHOT'
 
 task copyResources (type: Copy) {
+    println 'Copying resources'
     from sourceSets.main.resources.srcDirs
     into "$buildDir/libs"
     rename '(.+)_example(.+)', '$1$2'
 }
 
 task createJar(type: Jar) {
+    println 'Creating Vending machine JAR'
     manifest {
         attributes 'Implementation-Title': project.name,
                 'Implementation-Version': version,
@@ -24,6 +26,7 @@ task createJar(type: Jar) {
 }
 
 task createVendorJar(type: Jar) {
+    println 'Creating vendor JAR'
     manifest {
         attributes 'Implementation-Title': project.name,
                 'Implementation-Version': version,
@@ -33,6 +36,15 @@ task createVendorJar(type: Jar) {
     baseName = project.name + '-vendor'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+task release{
+    println 'Creating release package'
+    dependsOn createJar
+    dependsOn createVendorJar
+    dependsOn copyResources
+    tasks.findByName('createVendorJar').mustRunAfter 'createJar'
+    tasks.findByName('copyResources').mustRunAfter 'createVendorJar'
 }
 
 sourceCompatibility = 1.8

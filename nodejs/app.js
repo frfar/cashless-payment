@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
 app.get('/publicKey', (req, res) => {
     console.log(publicKey.toString('base64'));
     res.status(200).send(publicKey.toString('base64'));
-})  
+})
 
 //convert key wich is utf8 array to string based 64
 const keyBase64 = Buffer.from(String.fromCharCode.apply(null, key)).toString('base64');
@@ -65,6 +65,32 @@ const iv = crypto.randomBytes(16).toString('base64');
 
 //console.log(chalk.yellow('keyBase64 is : ' + keyBase64));
 //console.log(chalk.yellow('ivBase64 is : ' + iv.toString('base64')));
+// function bufferFile(relPath) {
+//     return fs.readFileSync(path.join(__dirname, relPath)); // zzzz....
+// }
+
+const readTextFile = () => {
+
+    var fs = require('fs')
+
+    fs.readFile("dbBackup.txt", 'utf8', function (err,data) {
+      if (err) {
+        return console.log(err);
+      }
+
+      var partsOfStr = data.split(',');
+      for(var i=0; i<partsOfStr.length; i++) {
+      	var value = partsOfStr[i];
+      //	alert(i =") "+value);parseInt(
+        console.log(value);
+      }
+      //console.log(data);
+      addOfflineTransaction(parseInt(partsOfStr[1]) ,parseInt(partsOfStr[1]) , parseInt(partsOfStr[2]), parseInt(partsOfStr[3]), parseInt(partsOfStr[4]), parseInt(partsOfStr[5]), parseInt(partsOfStr[6]), TRANS_INCOMPLETE, parseInt(partsOfStr[7]));
+    });
+}
+//addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_COMPLETE, DEFAULT_SEQUENCE)
+
+
 
 // fetch user by email
 app.get('/users', (req,res) => {
@@ -132,6 +158,10 @@ const TRANS_INCOMPLETE = 0;
 
 const DEFAULT_SEQUENCE = 0;
 
+
+
+
+
 app.post('/offline_transaction/incomplete', async(req,res) => {
     console.log(req.query);
     const card_id = req.query.card_id;
@@ -159,10 +189,10 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                     'message': err,
                     'code' : ERROR
                 });
-            });    
+            });
         }else{
             offline_transaction.findOne({
-                where: { 
+                where: {
                     card_id :card_id,
                     vm_id : prev_vm_id,
                     remaining_amount : prev_remaining_amount,
@@ -174,10 +204,10 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                     if(prev_tran.complete == TRANS_COMPLETE){
                         //console.log('prev is complete');
                         // if prev_transaction is complete, mark this one complete and add to db
-                        // loop and find 
+                        // loop and find
                         addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_COMPLETE, transaction_sequence).then(transaction => {
                             offline_transaction.findAll({
-                                where: { 
+                                where: {
                                     card_id: card_id,
                                     complete: TRANS_INCOMPLETE
                                 },
@@ -199,7 +229,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                                                 }).then(updated_transaction => {
                                                     //console.log('transaction ' + updated_transaction.id + ' updated')
                                                 })
-                                            }); 
+                                            });
                                             cur.vm_id = transactions[i].vm_id;
                                             cur.remaining_amount = transactions[i].remaining_amount;
                                             cur.timestamp = transactions[i].timestamp;
@@ -210,7 +240,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                                         'message': 'transaction is complete',
                                         'code' : COMPLETE
                                     });
-        
+
                                 }else{
                                     res.status(200).json({
                                         'message': 'Error',
@@ -218,7 +248,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                                     });
                                 }
                             });
-        
+
                         }).catch((err) => {
                             console.log(err);
                             res.status(200).json({
@@ -239,7 +269,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
                                 'code' : ERROR
                             });
                         })
-                    
+
                     }
                 }else{ // not found prev tran, so add so add the current one to db with incomplete state
                     addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_INCOMPLETE, transaction_sequence).then((transaction => {
@@ -260,7 +290,7 @@ app.post('/offline_transaction/incomplete', async(req,res) => {
         }
     })
 
-    
+
 });
 
 const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp,complete, transaction_sequence) => {
@@ -285,7 +315,7 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
                     complete : complete,
                     transaction_sequence : transaction_sequence
                 }).then((transaction)=>{
-                    if(transaction) 
+                    if(transaction)
                         resolve(transaction);
                     else{
                         reject('error adding new transaction');
@@ -293,9 +323,9 @@ const addOfflineTransaction = (card_id, vm_id, remaining_amount, timestamp, prev
                 });
             }
         });
-        
+
     });
-    
+
 }
 
 
@@ -549,6 +579,7 @@ app.listen(app.get('port'), (err) => {
         console.log(err);
         throw err;
     }
+    readTextFile();
     console.log('Lisening on port ' + app.get('port'));
 })
 
@@ -644,16 +675,82 @@ app.post('/login', async (req,res) => {
             name: user_info.name,
             email: user_info.email,
             contact: user_info.contact,
-            isAdmin: isAdmin   
+            isAdmin: isAdmin
         })
     } else {
         return res.status(400).json({
             message: "Invalid email/password"
         })
     }
-    
+
 });
 
+app.post('/noRaspTransaction', async (req,res) => {
+  // header = Header()
+  console.log("apppppppppppppppp!");
+  // header.Add("Access-Control-Allow-Origin", "*")
+  // header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+  // header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+  fs = require('fs');
+
+    let s = "1," + req.body.amount + "," + req.body.vendID + ",1589062238189," + "2," + "50," + "1589062238189,"+ "10";
+    fs.writeFile("dbBackup.txt" , s , function (err) {
+      if (err) return console.log(err);
+      console.log('Hello World > helloworld.txt');
+    });
+
+  try{
+  //  console.log("the enrror was caught")
+  const card_id = req.query.card_id;
+  const vm_id = req.query.vm_id;
+  const remaining_amount = req.query.remaining_amount;
+  const timestamp = req.query.timestamp;
+  const prev_vm_id = req.query.prev_vm_id;
+  const prev_remaining_amount = req.query.prev_remaining_amount;
+  const prev_timestamp = req.query.prev_timestamp;
+  const transaction_sequence = req.query.transaction_sequence;
+}catch(err){
+  console.log("the error was caught")
+}
+    let amount = req.body.amount;
+    let vendID = req.body.vendID;
+
+    if ([amount, vendID].some(is_empty)){
+        return res.status(400).send({message: "Required fields missing"})
+    }
+    // const user_info = await users.findOne({where: {email: email }});
+    // if (!user_info){
+    //     return res.status(400).json({
+    //         message: "Invalid email/password"
+    //     })
+    // }
+    //const validPass = await bcrypt.compare(password, user_info.passhash);
+    //const isAdmin = !!+user_info.is_admin;
+    await offline_transaction.findAll({
+        where : {card_id : 1}
+    }).then((result) => {
+      //addOfflineTransaction(card_id, vm_id, remaining_amount, timestamp, prev_vm_id, prev_remaining_amount, prev_timestamp, TRANS_COMPLETE, DEFAULT_SEQUENCE)
+
+      addOfflineTransaction(1, vendID, amount, 1589062238189, 2, 50, 1589062238189, TRANS_INCOMPLETE, 9).then((transaction)=>{
+          res.status(200).json({
+              'message': 'Previous PR incomplete => Transaction incomplete, added to db',
+              'code' : PREV_INCOMPLETE
+          });
+      }).catch((err) => {
+          console.log("hereeeeeeeeeeeeeeeeeeeeeee!");
+          console.log(err);
+
+          res.status(200).json({
+              'message': err,
+              'code' : ERROR
+
+
+          });
+      });
+    })
+
+
+});
 
 app.post('/changePassword', auth, async (req,res) => {
     const newPassword = req.body.newPassword;
@@ -700,9 +797,9 @@ app.post('/vendor_transaction', async (req,res) => {
                 });
             }
         }
-        
+
     )
-    
+
 });
 
 app.get('/vendor_transaction', async (req,res) => {
@@ -725,7 +822,7 @@ app.get('/vendor_transaction', async (req,res) => {
                 });
             }
         }
-        
+
     )
 })
 

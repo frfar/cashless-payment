@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from "react";
 import "./Home.css";
 import {Link} from "react-router-dom";
-import {Button} from "react-bootstrap";
+import {Button, FormGroup, FormControl, FormLabel} from "react-bootstrap";
+import {useHistory} from "react-router-dom";
+
 import axios from "axios";
 import styled from "styled-components";
 import ReactTable from "./ReactTable";
+
 
 const Styles = styled.div`
   padding: 1rem;
@@ -41,6 +44,9 @@ const Styles = styled.div`
 
 
 function NumberedList(props) {
+
+    const history = useHistory();
+
     const vendors = props.vendors;
     const listItems = vendors.map((vendor) =>
         <li key={vendor.id}>
@@ -61,6 +67,47 @@ function NumberedList(props) {
 export default function Home(props) {
     const [vendors, setVendors] = useState([]);
     const [transactions, setTransactions] = useState([]);
+    const [amount, setAmount] = useState("");
+    const [vendID, setVendID] = useState("");
+    function validateForm() {
+        return amount.length > 0 && vendID.length > 0;
+    }
+
+    function handleSubmit(event) {
+        console.log("here");
+        event.preventDefault();
+        const postData = {
+            amount: amount,
+            vendID: vendID
+        }
+
+        axios.post(`http://localhost:3000/noRaspTransaction`, postData)
+            .then(
+                res => {
+                    const response = res.data;
+                    const token = res.headers["auth-token"];
+                    if (token !== undefined) {
+                        props.handleTransaction(amount, vendID);
+                        // eslint-disable-next-line no-restricted-globals
+                        history.push("/")
+                    } else {
+                        alert("transaction failed");
+                    }
+                }
+            ).catch(
+            err => {
+                if (err.response !== undefined && err.response.data.message !== undefined) {
+                    alert(err.response.data.message);
+                }
+                console.log(err.response);
+            }
+        )
+
+
+    }
+
+
+
     useEffect(() => {
         props.isAdmin && axios.get("http://localhost:3000/vendors?has_transactions=true").then(
             result => {
@@ -123,7 +170,9 @@ export default function Home(props) {
     ];
     return (
         <div className="Home">
+
             <div className="lander">
+
                 <Link to="/changePassword">
                     <Button>
                         Change Password
@@ -144,6 +193,7 @@ export default function Home(props) {
                 props.isAdmin &&
                 (
                 <div>
+                  <form onSubmit={handleSubmit}>
                     <div>
                         <h3>Vendor Transactions</h3>
                         <NumberedList isAdmin={props.isAdmin} vendors={vendors}/>
@@ -154,7 +204,36 @@ export default function Home(props) {
                             < ReactTable columns={columns} data={transactions}/>
                         </Styles>
                     </div>
+                    <h1>Enter the details below</h1>
+                    <FormGroup md="4" controlId="amount" bssize="small">
+                        <FormLabel>Amount wanted</FormLabel>
+                        <FormControl
+
+                            type="Amount wanted"
+                            value={amount}
+                            onChange={e => setAmount(e.target.value)}
+
+                        />
+                    </FormGroup>
+                    <FormGroup md="4" controlId="vendID" bssize="small">
+                        <FormLabel>Vendor ID</FormLabel>
+                        <FormControl
+
+                            type="Vendor ID"
+                            value={vendID}
+                            onChange={e => setVendID(e.target.value)}
+
+                        />
+                    </FormGroup>
+
+                        <Button block bssize="large" disabled={!validateForm()} type="submit">
+                            Done
+                        </Button>
+
+                      </form>
+
                 </div>)
+
             }
         </div>
     );

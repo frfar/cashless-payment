@@ -22,15 +22,24 @@ import keypad.UIKeypad;
 
 public class GUITest {
 
+    //NAME is the vm name which isn't used
     private static final String NAME = "vm123456";
+
+    //this is for the https private key
     private static File privatekeyFile = new File(Config.privateKeyFileName);
+
+    //this is the public key file
     private static File publickeyFile = new File(Config.publicKeyFileName);
+
+    //this is the UI class
     private static SwingUI swingUI = new SwingUI();
 
+    //main function
     public static void main(String[] args) {
-
-        JFrame frame = new JFrame();
-
+	
+	JFrame frame = new JFrame();
+	
+	//here we are setting the setting options
         SwingUtilities.invokeLater(() -> {
             frame.add(swingUI);
             frame.setSize(500,300);
@@ -39,6 +48,7 @@ public class GUITest {
         });
 
         Acr122Device acr122;
+
         TransactionUploadThread transactionUploadThread = TransactionUploadThread.getInstance();
 
         try {

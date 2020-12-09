@@ -1,3 +1,5 @@
+//this code merely does one thing
+
 import net.miginfocom.swing.MigLayout;
 import web.AuthenticationService;
 
@@ -6,12 +8,14 @@ import java.awt.Font;
 import java.awt.event.*;
 import javax.swing.*;
 
+//this does the fields in the screen and the buttons that come with
 public class LoginForm extends JPanel {
     JLabel title, emailLabel, passwordLabel;
     JTextField emailField;
     JButton loginBtn;
     JPasswordField passwordField;
 
+    //this is the form of the login  and the text and button fields
     LoginForm() {
         title = new JLabel("Login Form");
         title.setForeground(Color.blue);

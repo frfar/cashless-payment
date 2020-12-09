@@ -18,7 +18,9 @@ module.exports = function() {
                     }
                 });
             }catch(err){
+              console.log("sqqqqqqqqqqqqqqqqqqqqqql!");
                 throw err;
+                ;
             }
         }
     }

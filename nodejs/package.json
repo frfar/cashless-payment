@@ -20,9 +20,9 @@
   "dependencies": {
     "aes-js": "^3.1.2",
     "aesjs": "^1.0.0",
-    "bcrypt": "^4.0.1",
+    "bcrypt": "^5.0.0",
     "chalk": "^2.4.2",
-    "eccrypto": "^1.1.2",
+    "eccrypto": "^1.1.5",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^1.7.0",

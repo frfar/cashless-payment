@@ -15,8 +15,12 @@ class App extends React.Component {
             isLoggedIn: false,
             isAdmin: false,
             userToken: '',
-            userInfo: {}
+            userInfo: {},
+            amount: "",
+            vendID: ""
+
         }
+        this.handleTransaction = this.handleTransaction.bind(this);
         this.handleLogin = this.handleLogin.bind(this);
         this.handleLogout = this.handleLogout.bind(this);
     }
@@ -28,6 +32,14 @@ class App extends React.Component {
             userInfo: userInfo,
             isAdmin: userInfo.isAdmin,
             isLoggedIn: true
+        })
+    }
+
+    handleTransaction(amount1, vendID1){
+
+        this.setState({
+            amount: amount1,
+            vendID: vendID1
         })
     }
 
@@ -80,6 +92,7 @@ class App extends React.Component {
                     isAdmin={this.state.isAdmin}
                     userToken = {this.state.userToken}
                     handleLogin={(userInfo, userToken) => this.handleLogin(userInfo, userToken)}
+                    handleTransaction={(amount, vendID) => this.handleTransaction(amount, vendID)}
                 />
             </Container>
 

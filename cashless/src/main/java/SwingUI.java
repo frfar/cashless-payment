@@ -1,3 +1,9 @@
+/*
+
+This code is merely the thing that initiates the each of the buttons
+
+*/
+
 import java.awt.event.*;
 import javax.swing.*;
 
